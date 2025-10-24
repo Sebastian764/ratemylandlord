@@ -8,10 +8,10 @@ let landlords: Landlord[] = [
 ];
 
 let reviews: Review[] = [
-  { id: 1, landlordId: 1, rating: 4, communication: 5, maintenance: 4, respect: 3, comment: 'Pretty good, fixed the sink quickly.', isVerified: true, isDeleted: false, createdAt: '2023-08-15' },
-  { id: 2, landlordId: 1, rating: 2, communication: 1, maintenance: 2, respect: 2, comment: 'Slow to respond and didn\'t return my full deposit.', isVerified: false, isDeleted: false, createdAt: '2023-05-20' },
-  { id: 3, landlordId: 2, rating: 5, communication: 5, maintenance: 5, respect: 5, comment: 'Best landlord I\'ve ever had! Super responsive.', isVerified: true, isDeleted: false, createdAt: '2023-09-01' },
-  { id: 4, landlordId: 1, rating: 3, communication: 3, maintenance: 3, respect: 3, comment: 'Just an average experience.', isVerified: false, isDeleted: true, createdAt: '2022-11-10' },
+  { id: 1, landlordId: 1, userId: undefined, rating: 4, communication: 5, maintenance: 4, respect: 3, comment: 'Pretty good, fixed the sink quickly.', isVerified: true, isDeleted: false, createdAt: '2023-08-15' },
+  { id: 2, landlordId: 1, userId: undefined, rating: 2, communication: 1, maintenance: 2, respect: 2, comment: 'Slow to respond and didn\'t return my full deposit.', isVerified: false, isDeleted: false, createdAt: '2023-05-20' },
+  { id: 3, landlordId: 2, userId: undefined, rating: 5, communication: 5, maintenance: 5, respect: 5, comment: 'Best landlord I\'ve ever had! Super responsive.', isVerified: true, isDeleted: false, createdAt: '2023-09-01' },
+  { id: 4, landlordId: 1, userId: undefined, rating: 3, communication: 3, maintenance: 3, respect: 3, comment: 'Just an average experience.', isVerified: false, isDeleted: true, createdAt: '2022-11-10' },
 ];
 
 let nextLandlordId = 4;

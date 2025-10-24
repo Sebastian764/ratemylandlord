@@ -2,12 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useData } from '../context/DataContext';
+import { useAuth } from '../context/AuthContext';
 import type { Landlord } from '../types';
 
 const AddReviewPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addReview, getLandlord, loading } = useData();
+  const { user } = useAuth();
 
   const [landlord, setLandlord] = useState<Landlord | null>(null);
   const [rating, setRating] = useState(3);
@@ -33,6 +35,7 @@ const AddReviewPage: React.FC = () => {
     }
     const reviewData = {
         landlordId,
+        userId: user?.id, // Track the user if they're logged in, undefined if anonymous
         rating,
         communication,
         maintenance,
@@ -46,6 +49,7 @@ const AddReviewPage: React.FC = () => {
         alert('Review submitted successfully!');
         navigate(`/landlord/${landlordId}`);
     } catch(err) {
+        console.error('Failed to submit review:', err);
         alert('Failed to submit review.');
     }
   };

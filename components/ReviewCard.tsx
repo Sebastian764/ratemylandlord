@@ -1,7 +1,7 @@
 
 import React from 'react';
 import type { Review } from '../types';
-import { useAdmin } from '../context/AdminContext';
+import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 
 interface ReviewCardProps {
@@ -24,7 +24,7 @@ const StarRating: React.FC<{ rating: number }> = ({ rating }) => (
 );
 
 const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
-  const { isAdmin } = useAdmin();
+  const { isAdmin, user } = useAuth();
   const { deleteReview } = useData();
 
   const handleDelete = async () => {
@@ -32,6 +32,9 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
       await deleteReview(review.id, review.landlordId);
     }
   };
+
+  // Check if the current user created this review
+  const isOwnReview = user && review.userId === user.id;
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
@@ -42,6 +45,9 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
              <span className="font-bold text-lg">{review.rating.toFixed(1)} / 5.0</span>
           </div>
           <p className="text-sm text-gray-500">Reviewed on: {review.createdAt}</p>
+          {isOwnReview && (
+            <p className="text-xs text-blue-600 font-semibold mt-1">Your review</p>
+          )}
         </div>
         {review.isVerified ? (
           <span className="px-3 py-1 text-xs font-semibold text-green-800 bg-green-200 rounded-full">Verified</span>

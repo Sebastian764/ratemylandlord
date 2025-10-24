@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
+import { useAuth } from '../context/AuthContext';
 
 const AddLandlordPage: React.FC = () => {
   const [name, setName] = useState('');
@@ -15,6 +16,7 @@ const AddLandlordPage: React.FC = () => {
   const [verificationFile, setVerificationFile] = useState<File | null>(null);
 
   const { addLandlord: apiAddLandlord } = useData();
+  const { user } = useAuth();
   const navigate = useNavigate();
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,6 +30,7 @@ const AddLandlordPage: React.FC = () => {
     let reviewData;
     if (addReview) {
       reviewData = {
+        userId: user?.id, // Track the user if they're logged in, undefined if anonymous
         rating,
         communication,
         maintenance,
@@ -42,6 +45,7 @@ const AddLandlordPage: React.FC = () => {
         alert('Landlord added successfully!');
         navigate(`/landlord/${newLandlord.id}`);
     } catch(err) {
+        console.error('Failed to add landlord:', err);
         alert('Failed to add landlord.');
     }
   };
