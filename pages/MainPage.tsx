@@ -15,7 +15,7 @@ const MainPage: React.FC = () => {
     }
     return landlords.filter(landlord =>
       landlord.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      landlord.address.toLowerCase().includes(searchTerm.toLowerCase())
+      landlord.address?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [searchTerm, landlords]);
 

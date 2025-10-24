@@ -16,7 +16,7 @@ export interface Review {
 export interface Landlord {
   id: number;
   name: string;
-  address: string;
+  address?: string; // Optional address field
   city: string;
   isDeleted: boolean;
 }

@@ -32,7 +32,9 @@ const LandlordPage: React.FC = () => {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-800">{landlord.name}</h1>
-            <p className="text-gray-600">{landlord.address}, {landlord.city}</p>
+            <p className="text-gray-600">
+              {landlord.address ? `${landlord.address}, ` : ''}{landlord.city}
+            </p>
           </div>
           <div className="text-right">
             <div className="text-4xl font-bold text-blue-600">{averageRating}</div>

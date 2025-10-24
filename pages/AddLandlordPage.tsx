@@ -21,12 +21,12 @@ const AddLandlordPage: React.FC = () => {
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !address) {
-      alert('Please fill in landlord name and address.');
+    if (!name) {
+      alert('Please fill in landlord name.');
       return;
     }
 
-    const landlordData = { name, address, city: 'Pittsburgh' };
+    const landlordData = { name, address: address || undefined, city: 'Pittsburgh' };
     let reviewData;
     if (addReview) {
       reviewData = {
@@ -62,8 +62,8 @@ const AddLandlordPage: React.FC = () => {
           <input type="text" id="name" value={name} onChange={e => setName(e.target.value)} className={formInputStyle} required />
         </div>
         <div>
-          <label htmlFor="address" className={formLabelStyle}>Property Address</label>
-          <input type="text" id="address" value={address} onChange={e => setAddress(e.target.value)} className={formInputStyle} required />
+          <label htmlFor="address" className={formLabelStyle}>Property Address (Optional)</label>
+          <input type="text" id="address" value={address} onChange={e => setAddress(e.target.value)} className={formInputStyle} />
         </div>
         
         <div className="pt-4 border-t">
