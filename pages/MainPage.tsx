@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useData } from '../context/DataContext';
@@ -35,8 +34,11 @@ const MainPage: React.FC = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full p-3 text-lg border-2 border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
           />
-          <Link to="/add-landlord" className="flex-shrink-0 px-6 py-3 text-lg font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition shadow-md">
-            Add Landlord
+        </div>
+        <div className="text-center my-4">
+          <p className="text-base text-gray-600 mb-4">Don't see your landlord?</p>
+          <Link to="/add-landlord" className="flex-shrink-0 px-6 py-3 text-base font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition shadow-md">
+            Add a new Landlord
           </Link>
         </div>
       </div>
