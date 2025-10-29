@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { Landlord, Review } from '../types';
 import * as api from '../services/mockApi';
+import { useAuth } from './AuthContext';
 
 interface DataContextType {
   landlords: Landlord[];
@@ -11,6 +12,7 @@ interface DataContextType {
   addLandlord: (landlordData: Omit<Landlord, 'id' | 'isDeleted'>, reviewData?: Omit<Review, 'id' | 'landlordId' | 'isDeleted' | 'createdAt'>) => Promise<Landlord>;
   addReview: (reviewData: Omit<Review, 'id' | 'isDeleted' | 'createdAt'>) => Promise<Review>;
   deleteReview: (reviewId: number, landlordId: number) => Promise<void>;
+  restoreReview: (reviewId: number, landlordId: number) => Promise<void>;
   loading: boolean;
   refreshLandlords: () => void;
 }
@@ -21,6 +23,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [landlords, setLandlords] = useState<Landlord[]>([]);
   const [reviews, setReviews] = useState<{ [key: number]: Review[] }>({});
   const [loading, setLoading] = useState(true);
+  const { isAdmin } = useAuth();
 
   const fetchLandlords = useCallback(async () => {
     setLoading(true);
@@ -43,11 +46,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const getReviewsForLandlord = useCallback(async (id: number) => {
     if (reviews[id]) return reviews[id];
     setLoading(true);
-    const landlordReviews = await api.getReviewsByLandlordId(id);
+    const landlordReviews = await api.getReviewsByLandlordId(id, isAdmin);
     setReviews(prev => ({ ...prev, [id]: landlordReviews }));
     setLoading(false);
     return landlordReviews;
-  }, [reviews]);
+  }, [reviews, isAdmin]);
   
   const handleAddLandlord = async (landlordData: Omit<Landlord, 'id' | 'isDeleted'>, reviewData?: Omit<Review, 'id' | 'landlordId' | 'isDeleted' | 'createdAt'>) => {
       const newLandlord = await api.addLandlord(landlordData, reviewData);
@@ -75,6 +78,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
   };
 
+  const handleRestoreReview = async (reviewId: number, landlordId: number) => {
+      await api.restoreReview(reviewId);
+      setReviews(prev => {
+          const newReviews = {...prev};
+          delete newReviews[landlordId];
+          return newReviews;
+      });
+  };
+
   const value = {
     landlords,
     reviews,
@@ -83,6 +95,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     addLandlord: handleAddLandlord,
     addReview: handleAddReview,
     deleteReview: handleDeleteReview,
+    restoreReview: handleRestoreReview,
     loading,
     refreshLandlords: fetchLandlords
   };

@@ -19,6 +19,7 @@ let reviews: Review[] = [
   { id: 5, landlordId: 4, userId: undefined, rating: 2, communication: 2, maintenance: 1, respect: 2, comment: 'Fake review', isVerified: false, isDeleted: false, createdAt: '2023-07-10' },
   { id: 6, landlordId: 4, userId: undefined, rating: 3, communication: 3, maintenance: 3, respect: 3, comment: 'Fake review', isVerified: true, isDeleted: false, createdAt: '2023-09-22' },
   { id: 7, landlordId: 4, userId: undefined, rating: 1, communication: 1, maintenance: 2, respect: 1, comment: 'Fake review', isVerified: false, isDeleted: false, createdAt: '2023-06-05' },
+  { id: 25, landlordId: 4, userId: undefined, rating: 1, communication: 1, maintenance: 1, respect: 1, comment: 'This review was deleted by an admin (test)', isVerified: false, isDeleted: true, createdAt: '2023-08-01' },
   
   // Walnut Capital reviews
   { id: 8, landlordId: 5, userId: undefined, rating: 4, communication: 4, maintenance: 4, respect: 4, comment: 'Fake review', isVerified: true, isDeleted: false, createdAt: '2023-08-18' },
@@ -51,7 +52,7 @@ let reviews: Review[] = [
 ];
 
 let nextLandlordId = 11;
-let nextReviewId = 25;
+let nextReviewId = 26;
 
 // Simulate API latency
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
@@ -66,8 +67,11 @@ export const getLandlordById = async (id: number): Promise<Landlord | undefined>
   return Promise.resolve(landlords.find(l => l.id === id && !l.isDeleted));
 };
 
-export const getReviewsByLandlordId = async (landlordId: number): Promise<Review[]> => {
+export const getReviewsByLandlordId = async (landlordId: number, includeDeleted = false): Promise<Review[]> => {
   await delay(300);
+  if (includeDeleted) {
+    return Promise.resolve(reviews.filter(r => r.landlordId === landlordId));
+  }
   return Promise.resolve(reviews.filter(r => r.landlordId === landlordId && !r.isDeleted));
 };
 
@@ -123,6 +127,16 @@ export const deleteLandlord = async (landlordId: number): Promise<boolean> => {
   const landlordIndex = landlords.findIndex(l => l.id === landlordId);
   if (landlordIndex > -1) {
     landlords[landlordIndex].isDeleted = true;
+    return Promise.resolve(true);
+  }
+  return Promise.resolve(false);
+};
+
+export const restoreReview = async (reviewId: number): Promise<boolean> => {
+  await delay(300);
+  const reviewIndex = reviews.findIndex(r => r.id === reviewId);
+  if (reviewIndex > -1 && reviews[reviewIndex].isDeleted) {
+    reviews[reviewIndex].isDeleted = false;
     return Promise.resolve(true);
   }
   return Promise.resolve(false);

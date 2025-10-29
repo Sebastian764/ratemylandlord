@@ -25,11 +25,17 @@ const StarRating: React.FC<{ rating: number }> = ({ rating }) => (
 
 const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
   const { isAdmin, user } = useAuth();
-  const { deleteReview } = useData();
+  const { deleteReview, restoreReview } = useData();
 
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this review? This action cannot be undone.')) {
+    if (window.confirm('Are you sure you want to delete this review?')) {
       await deleteReview(review.id, review.landlordId);
+    }
+  };
+
+  const handleRestore = async () => {
+    if (window.confirm('Are you sure you want to restore this review?')) {
+      await restoreReview(review.id, review.landlordId);
     }
   };
 
@@ -37,7 +43,12 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
   const isOwnReview = user && review.userId === user.id;
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+    <div className={`bg-white p-6 rounded-lg shadow-md border ${review.isDeleted ? 'border-red-300 opacity-70' : 'border-gray-200'}`}>
+      {review.isDeleted && isAdmin && (
+        <div className="mb-4 p-2 bg-red-100 border border-red-300 rounded text-red-800 text-sm font-semibold">
+          ⚠️ This review has been deleted and is only visible to admins
+        </div>
+      )}
       <div className="flex justify-between items-start">
         <div>
           <div className="flex items-center gap-4 mb-2">
@@ -62,13 +73,22 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
         <div className="p-2 bg-gray-100 rounded">Respect: <span className="font-semibold">{review.respect}/5</span></div>
       </div>
        {isAdmin && (
-        <div className="mt-4 text-right">
-          <button
-            onClick={handleDelete}
-            className="px-3 py-1 text-xs font-medium text-white bg-red-600 rounded hover:bg-red-700"
-          >
-            Delete Review
-          </button>
+        <div className="mt-4 text-right flex justify-end gap-2">
+          {review.isDeleted ? (
+            <button
+              onClick={handleRestore}
+              className="px-3 py-1 text-xs font-medium text-white bg-green-600 rounded hover:bg-green-700"
+            >
+              Restore Review
+            </button>
+          ) : (
+            <button
+              onClick={handleDelete}
+              className="px-3 py-1 text-xs font-medium text-white bg-red-600 rounded hover:bg-red-700"
+            >
+              Delete Review
+            </button>
+          )}
         </div>
       )}
     </div>

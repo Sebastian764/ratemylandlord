@@ -2,12 +2,14 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useData } from '../context/DataContext';
+import { useAuth } from '../context/AuthContext';
 import type { Landlord, Review } from '../types';
 import ReviewCard from '../components/ReviewCard';
 
 const LandlordPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { getLandlord, getReviewsForLandlord, loading } = useData();
+  const { isAdmin } = useAuth();
   const [landlord, setLandlord] = useState<Landlord | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
 
@@ -17,10 +19,12 @@ const LandlordPage: React.FC = () => {
       getLandlord(landlordId).then(data => setLandlord(data || null));
       getReviewsForLandlord(landlordId).then(setReviews);
     }
-  }, [id, getLandlord, getReviewsForLandlord]);
+  }, [id, getLandlord, getReviewsForLandlord, isAdmin]);
 
-  const averageRating = reviews.length > 0
-    ? (reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length).toFixed(1)
+  // Filter out deleted reviews for non-admin users when calculating stats
+  const activeReviews = isAdmin ? reviews.filter(r => !r.isDeleted) : reviews;
+  const averageRating = activeReviews.length > 0
+    ? (activeReviews.reduce((acc, review) => acc + review.rating, 0) / activeReviews.length).toFixed(1)
     : 'N/A';
 
   if (loading && !landlord) return <div className="text-center">Loading...</div>;
@@ -44,7 +48,9 @@ const LandlordPage: React.FC = () => {
       </div>
 
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">Reviews ({reviews.length})</h2>
+        <h2 className="text-2xl font-semibold">
+          Reviews ({activeReviews.length}{isAdmin && reviews.length > activeReviews.length ? ` + ${reviews.length - activeReviews.length} deleted` : ''})
+        </h2>
         <Link to={`/landlord/${id}/add-review`} className="px-6 py-2 font-semibold text-white bg-green-600 rounded-md hover:bg-green-700 transition shadow">
           Add a Review
         </Link>
