@@ -8,9 +8,10 @@ export interface Review {
   maintenance: number;
   respect: number;
   comment: string;
-  isVerified: boolean;
+  verificationStatus: 'unverified' | 'pending' | 'verified';
   isDeleted: boolean;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface Landlord {

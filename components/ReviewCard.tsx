@@ -60,10 +60,12 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
             <p className="text-xs text-blue-600 font-semibold mt-1">Your review</p>
           )}
         </div>
-        {review.isVerified ? (
-          <span className="px-3 py-1 text-xs font-semibold text-green-800 bg-green-200 rounded-full">Verified</span>
+        {review.verificationStatus === 'verified' ? (
+          <span className="px-3 py-1 text-xs font-semibold text-green-800 bg-green-200 rounded-full">✓ Verified</span>
+        ) : review.verificationStatus === 'pending' ? (
+          <span className="px-3 py-1 text-xs font-semibold text-blue-800 bg-blue-200 rounded-full">⏳ Verification In Progress</span>
         ) : (
-          <span className="px-3 py-1 text-xs font-semibold text-yellow-800 bg-yellow-200 rounded-full">Not Verified</span>
+          <span className="px-3 py-1 text-xs font-semibold text-gray-600 bg-gray-200 rounded-full">Unverified</span>
         )}
       </div>
       <p className="mt-4 text-gray-700 italic">"{review.comment}"</p>
