@@ -72,8 +72,31 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
       <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-center">
         <div className="p-2 bg-gray-100 rounded">Communication: <span className="font-semibold">{review.communication}/5</span></div>
         <div className="p-2 bg-gray-100 rounded">Maintenance: <span className="font-semibold">{review.maintenance}/5</span></div>
-        <div className="p-2 bg-gray-100 rounded">Respect: <span className="font-semibold">{review.respect}/5</span></div>
+        <div className="p-2 bg-gray-100 rounded">Respectfulness: <span className="font-semibold">{review.respect}/5</span></div>
       </div>
+      
+      {/* Additional review details */}
+      <div className="mt-4 space-y-2 text-sm text-gray-600">
+        <div className="flex items-center gap-2">
+          <span className="font-semibold">Would rent again:</span>
+          <span className={review.wouldRentAgain ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'}>
+            {review.wouldRentAgain ? '✓ Yes' : '✗ No'}
+          </span>
+        </div>
+        {review.rentAmount && (
+          <div className="flex items-center gap-2">
+            <span className="font-semibold">Rent + Utilities:</span>
+            <span>${review.rentAmount.toFixed(2)}/month</span>
+          </div>
+        )}
+        {review.propertyAddress && (
+          <div className="flex items-center gap-2">
+            <span className="font-semibold">Property:</span>
+            <span>{review.propertyAddress}</span>
+          </div>
+        )}
+      </div>
+      
        {isAdmin && (
         <div className="mt-4 text-right flex justify-end gap-2">
           {review.isDeleted ? (

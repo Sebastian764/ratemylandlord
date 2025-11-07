@@ -14,6 +14,9 @@ const AddLandlordPage: React.FC = () => {
   const [maintenance, setMaintenance] = useState(3);
   const [respect, setRespect] = useState(3);
   const [comment, setComment] = useState('');
+  const [wouldRentAgain, setWouldRentAgain] = useState(false);
+  const [rentAmount, setRentAmount] = useState('');
+  const [propertyAddress, setPropertyAddress] = useState('');
   const [verificationFile, setVerificationFile] = useState<File | null>(null);
 
   const { addLandlord: apiAddLandlord } = useData();
@@ -37,6 +40,9 @@ const AddLandlordPage: React.FC = () => {
         maintenance,
         respect,
         comment,
+        wouldRentAgain,
+        rentAmount: rentAmount ? parseFloat(rentAmount) : undefined,
+        propertyAddress: propertyAddress || undefined,
         verificationStatus: verificationFile ? 'pending' : 'unverified'
       };
     }
@@ -88,6 +94,12 @@ const AddLandlordPage: React.FC = () => {
               setRespect={setRespect}
               comment={comment}
               setComment={setComment}
+              wouldRentAgain={wouldRentAgain}
+              setWouldRentAgain={setWouldRentAgain}
+              rentAmount={rentAmount}
+              setRentAmount={setRentAmount}
+              propertyAddress={propertyAddress}
+              setPropertyAddress={setPropertyAddress}
               verificationFile={verificationFile}
               setVerificationFile={setVerificationFile}
             />

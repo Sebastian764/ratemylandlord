@@ -8,6 +8,9 @@ export interface Review {
   maintenance: number;
   respect: number;
   comment: string;
+  wouldRentAgain: boolean;
+  rentAmount?: number; // Optional: monthly rent + utilities
+  propertyAddress?: string; // Optional: specific property address
   verificationStatus: 'unverified' | 'pending' | 'verified';
   isDeleted: boolean;
   createdAt: string;
