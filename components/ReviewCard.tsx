@@ -29,22 +29,22 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
 
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this review?')) {
-      await deleteReview(review.id, review.landlordId);
+      await deleteReview(review.id, review.landlord_id); // Changed to snake_case
     }
   };
 
   const handleRestore = async () => {
     if (window.confirm('Are you sure you want to restore this review?')) {
-      await restoreReview(review.id, review.landlordId);
+      await restoreReview(review.id, review.landlord_id); // Changed to snake_case
     }
   };
 
   // Check if the current user created this review
-  const isOwnReview = user && review.userId === user.id;
+  const isOwnReview = user && review.user_id === user.id; // Changed to snake_case
 
   return (
-    <div className={`bg-white p-6 rounded-lg shadow-md border ${review.isDeleted ? 'border-red-300 opacity-70' : 'border-gray-200'}`}>
-      {review.isDeleted && isAdmin && (
+    <div className={`bg-white p-6 rounded-lg shadow-md border ${review.is_deleted ? 'border-red-300 opacity-70' : 'border-gray-200'}`}>
+      {review.is_deleted && isAdmin && (
         <div className="mb-4 p-2 bg-red-100 border border-red-300 rounded text-red-800 text-sm font-semibold">
           ⚠️ This review has been deleted and is only visible to admins
         </div>
@@ -55,14 +55,14 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
              <StarRating rating={review.rating} />
              <span className="font-bold text-lg">{review.rating.toFixed(1)} / 5.0</span>
           </div>
-          <p className="text-sm text-gray-500">Reviewed on: {review.createdAt}</p>
+          <p className="text-sm text-gray-500">Reviewed on: {review.created_at}</p>
           {isOwnReview && (
             <p className="text-xs text-blue-600 font-semibold mt-1">Your review</p>
           )}
         </div>
-        {review.verificationStatus === 'verified' ? (
+        {review.verification_status === 'verified' ? (
           <span className="px-3 py-1 text-xs font-semibold text-green-800 bg-green-200 rounded-full">✓ Verified</span>
-        ) : review.verificationStatus === 'pending' ? (
+        ) : review.verification_status === 'pending' ? (
           <span className="px-3 py-1 text-xs font-semibold text-blue-800 bg-blue-200 rounded-full">⏳ Verification In Progress</span>
         ) : (
           <span className="px-3 py-1 text-xs font-semibold text-gray-600 bg-gray-200 rounded-full">Unverified</span>
@@ -79,27 +79,27 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
       <div className="mt-4 space-y-2 text-sm text-gray-600">
         <div className="flex items-center gap-2">
           <span className="font-semibold">Would rent again:</span>
-          <span className={review.wouldRentAgain ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'}>
-            {review.wouldRentAgain ? '✓ Yes' : '✗ No'}
+          <span className={review.would_rent_again ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'}>
+            {review.would_rent_again ? '✓ Yes' : '✗ No'}
           </span>
         </div>
-        {review.rentAmount && (
+        {review.rent_amount && (
           <div className="flex items-center gap-2">
             <span className="font-semibold">Rent + Utilities:</span>
-            <span>${review.rentAmount.toFixed(2)}/month</span>
+            <span>${review.rent_amount.toFixed(2)}/month</span>
           </div>
         )}
-        {review.propertyAddress && (
+        {review.property_address && (
           <div className="flex items-center gap-2">
             <span className="font-semibold">Property:</span>
-            <span>{review.propertyAddress}</span>
+            <span>{review.property_address}</span>
           </div>
         )}
       </div>
       
        {isAdmin && (
         <div className="mt-4 text-right flex justify-end gap-2">
-          {review.isDeleted ? (
+          {review.is_deleted ? (
             <button
               onClick={handleRestore}
               className="px-3 py-1 text-xs font-medium text-white bg-green-600 rounded hover:bg-green-700"

@@ -22,7 +22,7 @@ const LandlordPage: React.FC = () => {
   }, [id, getLandlord, getReviewsForLandlord, isAdmin]);
 
   // Filter out deleted reviews for non-admin users when calculating stats
-  const activeReviews = isAdmin ? reviews.filter(r => !r.isDeleted) : reviews;
+  const activeReviews = isAdmin ? reviews.filter(r => !r.is_deleted) : reviews; // Changed to snake_case
   const averageRating = activeReviews.length > 0
     ? (activeReviews.reduce((acc, review) => acc + review.rating, 0) / activeReviews.length).toFixed(1)
     : 'N/A';
@@ -37,7 +37,7 @@ const LandlordPage: React.FC = () => {
           <div>
             <h1 className="text-3xl font-bold text-gray-800">{landlord.name}</h1>
             <p className="text-gray-600">
-              {landlord.address ? `${landlord.address}, ` : ''}{landlord.city}
+              {landlord.addresses && landlord.addresses.length > 0 ? `${landlord.addresses.join(', ')}, ` : ''}{landlord.city}
             </p>
           </div>
           <div className="text-right">

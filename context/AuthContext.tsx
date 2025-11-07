@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, useMemo } from 'react';
+import { supabase } from '../services/supabase';
 import type { User } from '../types';
-import * as authApi from '../services/mockAuthApi';
 
 interface AuthContextType {
   user: User | null;
@@ -13,30 +13,70 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Admin emails - in production, you could create a separate table for admin users
+const ADMIN_EMAILS = ['admin@ratemylandlord.com'];
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  // Load user from localStorage on mount
   useEffect(() => {
-    const storedUserId = localStorage.getItem('userId');
-    if (storedUserId) {
-      authApi.getUserById(Number(storedUserId)).then(userData => {
-        if (userData) setUser(userData);
-      });
-    }
+    // Check active session on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        const userData: User = {
+          id: session.user.id,
+          email: session.user.email!,
+        };
+        setUser(userData);
+        setIsAdmin(ADMIN_EMAILS.includes(session.user.email!));
+      }
+      setLoading(false);
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const userData: User = {
+          id: session.user.id,
+          email: session.user.email!,
+        };
+        setUser(userData);
+        setIsAdmin(ADMIN_EMAILS.includes(session.user.email!));
+      } else {
+        setUser(null);
+        setIsAdmin(false);
+      }
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setLoading(true);
     try {
-      const userData = await authApi.loginUser(email, password);
-      if (userData) {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        const userData: User = {
+          id: data.user.id,
+          email: data.user.email!,
+        };
         setUser(userData);
-        localStorage.setItem('userId', userData.id.toString());
+        setIsAdmin(ADMIN_EMAILS.includes(data.user.email!));
         setLoading(false);
         return true;
       }
+
       setLoading(false);
       return false;
     } catch (error) {
@@ -49,13 +89,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (email: string, password: string): Promise<boolean> => {
     setLoading(true);
     try {
-      const newUser = await authApi.registerUser(email, password);
-      if (newUser) {
-        setUser(newUser);
-        localStorage.setItem('userId', newUser.id.toString());
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        const userData: User = {
+          id: data.user.id,
+          email: data.user.email!,
+        };
+        setUser(userData);
+        setIsAdmin(ADMIN_EMAILS.includes(data.user.email!));
         setLoading(false);
         return true;
       }
+
       setLoading(false);
       return false;
     } catch (error) {
@@ -64,14 +115,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
-    localStorage.removeItem('userId');
+    setIsAdmin(false);
   };
 
   const value = useMemo(
-    () => ({ user, isAdmin: user?.isAdmin || false, login, register, logout, loading }),
-    [user, loading]
+    () => ({ user, isAdmin, login, register, logout, loading }),
+    [user, isAdmin, loading]
   );
 
   return (

@@ -13,7 +13,7 @@ const LandlordCard: React.FC<LandlordCardProps> = ({ landlord }) => {
       <div className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
         <h3 className="text-xl font-semibold text-blue-700">{landlord.name}</h3>
         <p className="text-gray-600 mt-2">
-          {landlord.address ? `${landlord.address}, ` : ''}{landlord.city}
+          {landlord.addresses && landlord.addresses.length > 0 ? `${landlord.addresses.join(', ')}, ` : ''}{landlord.city}
         </p>
       </div>
     </Link>

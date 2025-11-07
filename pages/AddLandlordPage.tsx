@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
@@ -30,20 +29,24 @@ const AddLandlordPage: React.FC = () => {
       return;
     }
 
-    const landlordData = { name, address: address || undefined, city: 'Pittsburgh' };
+    const landlordData = { 
+      name, 
+      addresses: address ? [address] : undefined,
+      city: 'Pittsburgh' 
+    };
     let reviewData;
     if (addReview) {
       reviewData = {
-        userId: user?.id, // Track the user if they're logged in, undefined if anonymous
+        user_id: user?.id || undefined,
         rating,
         communication,
         maintenance,
         respect,
         comment,
-        wouldRentAgain,
-        rentAmount: rentAmount ? parseFloat(rentAmount) : undefined,
-        propertyAddress: propertyAddress || undefined,
-        verificationStatus: verificationFile ? 'pending' : 'unverified'
+        would_rent_again: wouldRentAgain,
+        rent_amount: rentAmount ? parseFloat(rentAmount) : undefined,
+        property_address: propertyAddress || undefined,
+        verification_status: verificationFile ? 'pending' : 'unverified' as const
       };
     }
     
@@ -53,7 +56,7 @@ const AddLandlordPage: React.FC = () => {
         navigate(`/landlord/${newLandlord.id}`);
     } catch(err) {
         console.error('Failed to add landlord:', err);
-        alert('Failed to add landlord.');
+        alert('Failed to add landlord. Please try again.');
     }
   };
 
@@ -63,6 +66,14 @@ const AddLandlordPage: React.FC = () => {
   return (
     <div className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-xl">
       <h1 className="text-3xl font-bold mb-6 text-center">Add a New Landlord</h1>
+      {!user && (
+        <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+          <p className="text-sm text-yellow-800">
+            📝 You're submitting as a guest. 
+            <a href="/login" className="underline ml-1 font-semibold">Log in</a> to edit your submissions later.
+          </p>
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label htmlFor="name" className={formLabelStyle}>Landlord/Company Name</label>
