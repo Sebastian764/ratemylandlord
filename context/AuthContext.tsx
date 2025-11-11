@@ -14,7 +14,10 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Admin emails - in production, you could create a separate table for admin users
-const ADMIN_EMAILS = ['admin@ratemylandlord.com'];
+const ADMIN_EMAILS = [
+  'admin@ratemylandlord.com',
+  'sebastiancastroramos@gmail.com'
+];
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
