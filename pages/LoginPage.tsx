@@ -6,7 +6,11 @@ const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { login, loading } = useAuth();
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetMessage, setResetMessage] = useState('');
+  const [resetError, setResetError] = useState('');
+  const { login, resetPassword, loading } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -18,6 +22,29 @@ const LoginPage: React.FC = () => {
       navigate('/');
     } else {
       setError('Invalid email or password.');
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetError('');
+    setResetMessage('');
+
+    if (!resetEmail) {
+      setResetError('Please enter your email address.');
+      return;
+    }
+
+    const result = await resetPassword(resetEmail);
+    if (result.success) {
+      setResetMessage('Password reset email sent! Please check your inbox.');
+      setTimeout(() => {
+        setShowResetModal(false);
+        setResetEmail('');
+        setResetMessage('');
+      }, 3000);
+    } else {
+      setResetError(result.error || 'Failed to send reset email.');
     }
   };
 
@@ -66,7 +93,65 @@ const LoginPage: React.FC = () => {
         <p className="mt-4 text-center text-sm text-gray-600">
           Don't have an account? <Link to="/register" className="text-blue-600 hover:text-blue-800 font-semibold">Sign up</Link>
         </p>
+        <p className="mt-2 text-center text-sm text-gray-600">
+          <button
+            onClick={() => setShowResetModal(true)}
+            className="text-blue-600 hover:text-blue-800 font-semibold"
+          >
+            Forgot password?
+          </button>
+        </p>
       </div>
+
+      {/* Password Reset Modal */}
+      {showResetModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <h2 className="text-2xl font-bold mb-4">Reset Password</h2>
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div>
+                <label htmlFor="resetEmail" className="block text-sm font-medium text-gray-700">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  id="resetEmail"
+                  value={resetEmail}
+                  onChange={(e) => {
+                    setResetEmail(e.target.value);
+                    setResetError('');
+                  }}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Enter your email"
+                  required
+                />
+              </div>
+              {resetError && <p className="text-red-500 text-sm">{resetError}</p>}
+              {resetMessage && <p className="text-green-600 text-sm">{resetMessage}</p>}
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowResetModal(false);
+                    setResetEmail('');
+                    setResetError('');
+                    setResetMessage('');
+                  }}
+                  className="flex-1 py-2 px-4 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75"
+                >
+                  Send Reset Link
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
