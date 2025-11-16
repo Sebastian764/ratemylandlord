@@ -35,7 +35,19 @@ const LandlordPage: React.FC = () => {
       <div className="bg-white p-8 rounded-lg shadow-lg mb-8">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">{landlord.name}</h1>
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-3xl font-bold text-gray-800">{landlord.name}</h1>
+              {landlord.status === 'pending' && (
+                <span className="px-3 py-1 text-sm font-semibold text-yellow-800 bg-yellow-200 rounded-full">
+                  Pending Approval
+                </span>
+              )}
+              {landlord.status === 'rejected' && (
+                <span className="px-3 py-1 text-sm font-semibold text-red-800 bg-red-200 rounded-full">
+                  Rejected
+                </span>
+              )}
+            </div>
             <p className="text-gray-600">
               {landlord.addresses && landlord.addresses.length > 0 ? `${landlord.addresses.join(', ')}, ` : ''}{landlord.city}
             </p>

@@ -29,18 +29,18 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
 
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this review?')) {
-      await deleteReview(review.id, review.landlord_id); // Changed to snake_case
+      await deleteReview(review.id, review.landlord_id);
     }
   };
 
   const handleRestore = async () => {
     if (window.confirm('Are you sure you want to restore this review?')) {
-      await restoreReview(review.id, review.landlord_id); // Changed to snake_case
+      await restoreReview(review.id, review.landlord_id);
     }
   };
 
   // Check if the current user created this review
-  const isOwnReview = user && review.user_id === user.id; // Changed to snake_case
+  const isOwnReview = user && review.user_id === user.id;
 
   return (
     <div className={`bg-white p-6 rounded-lg shadow-md border ${review.is_deleted ? 'border-red-300 opacity-70' : 'border-gray-200'}`}>

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { Landlord, Review } from '../types';
 import * as api from '../services/api';
@@ -23,7 +22,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [landlords, setLandlords] = useState<Landlord[]>([]);
   const [reviews, setReviews] = useState<{ [key: number]: Review[] }>({});
   const [loading, setLoading] = useState(true);
-  const { isAdmin } = useAuth();
+  const { isAdmin, loading: authLoading } = useAuth();
 
   const fetchLandlords = useCallback(async () => {
     setLoading(true);
@@ -113,7 +112,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     addReview: handleAddReview,
     deleteReview: handleDeleteReview,
     restoreReview: handleRestoreReview,
-    loading,
+    loading: loading || authLoading,
     refreshLandlords: fetchLandlords
   };
 

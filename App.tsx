@@ -12,6 +12,7 @@ import AddLandlordPage from './pages/AddLandlordPage';
 import AddReviewPage from './pages/AddReviewPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import AdminPage from './pages/AdminPage';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/contact" element={<ContactPage />} />
+                <Route path="/admin" element={<AdminPage />} />
               </Routes>
             </main>
             <Footer />

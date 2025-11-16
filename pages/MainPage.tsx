@@ -1,12 +1,15 @@
 
 import React, { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
+import { useAuth } from '../context/AuthContext';
 import LandlordCard from '../components/LandlordCard';
 import type { Landlord } from '../types';
 
 const MainPage: React.FC = () => {
   const { landlords, loading } = useData();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredLandlords = useMemo(() => {
@@ -18,6 +21,14 @@ const MainPage: React.FC = () => {
       landlord.address?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [searchTerm, landlords]);
+
+  const handleAddLandlordClick = () => {
+    if (user) {
+      navigate('/add-landlord');
+    } else {
+      navigate('/login');
+    }
+  };
 
   return (
     <div>
@@ -35,9 +46,9 @@ const MainPage: React.FC = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full p-3 text-lg border-2 border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
           />
-          <Link to="/add-landlord" className="flex-shrink-0 px-6 py-3 text-lg font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition shadow-md">
+          <button onClick={handleAddLandlordClick} className="flex-shrink-0 px-6 py-3 text-lg font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 transition shadow-md">
             Add Landlord
-          </Link>
+          </button>
         </div>
       </div>
       

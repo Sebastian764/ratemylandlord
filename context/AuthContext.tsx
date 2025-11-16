@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, useMemo } from 'react';
 import { supabase } from '../services/supabase';
+import { checkIsAdminUser } from '../services/api';
 import type { User } from '../types';
 
 interface AuthContextType {
@@ -13,11 +14,26 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Admin emails - in production, you could create a separate table for admin users
-const ADMIN_EMAILS = [
-  'admin@ratemylandlord.com',
-  'sebastiancastroramos@gmail.com'
-];
+// Cache admin status to avoid repeated DB calls
+const adminCache = new Map<string, { isAdmin: boolean; timestamp: number }>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Helper function to check if user is admin
+const checkIsAdmin = async (email: string): Promise<boolean> => {
+  // Check cache first
+  const cached = adminCache.get(email);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.isAdmin;
+  }
+
+  // Query database
+  const isAdmin = await checkIsAdminUser(email);
+  
+  // Cache result
+  adminCache.set(email, { isAdmin, timestamp: Date.now() });
+  
+  return isAdmin;
+};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -25,30 +41,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
+    let mounted = true;
+    
     // Check active session on mount
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!mounted) return;
+      
       if (session?.user) {
         const userData: User = {
           id: session.user.id,
           email: session.user.email!,
         };
         setUser(userData);
-        setIsAdmin(ADMIN_EMAILS.includes(session.user.email!));
+        setLoading(false); // Set loading false BEFORE admin check
+        
+        // Check admin status AFTER user is set
+        const adminStatus = await checkIsAdmin(session.user.email!);
+        if (mounted) setIsAdmin(adminStatus);
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!mounted) return;
+      
       if (session?.user) {
         const userData: User = {
           id: session.user.id,
           email: session.user.email!,
         };
         setUser(userData);
-        setIsAdmin(ADMIN_EMAILS.includes(session.user.email!));
+        
+        // TODO: try to remove this delay if possible
+        // Check admin after a small delay
+        setTimeout(async () => {
+          if (!mounted) return;
+          const adminStatus = await checkIsAdmin(session.user.email!);
+          setIsAdmin(adminStatus);
+        }, 100);
       } else {
         setUser(null);
         setIsAdmin(false);
@@ -56,7 +90,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
@@ -75,7 +112,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: data.user.email!,
         };
         setUser(userData);
-        setIsAdmin(ADMIN_EMAILS.includes(data.user.email!));
+        const adminStatus = await checkIsAdmin(data.user.email!);
+        setIsAdmin(adminStatus);
         setLoading(false);
         return true;
       }
@@ -105,7 +143,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: data.user.email!,
         };
         setUser(userData);
-        setIsAdmin(ADMIN_EMAILS.includes(data.user.email!));
+        const adminStatus = await checkIsAdmin(data.user.email!);
+        setIsAdmin(adminStatus);
         setLoading(false);
         return true;
       }
@@ -122,6 +161,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await supabase.auth.signOut();
     setUser(null);
     setIsAdmin(false);
+    // Clear admin cache on logout
+    if (user?.email) {
+      adminCache.delete(user.email);
+    }
   };
 
   const value = useMemo(
