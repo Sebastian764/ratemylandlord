@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { Review } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
@@ -26,6 +27,7 @@ const StarRating: React.FC<{ rating: number }> = ({ rating }) => (
 const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
   const { isAdmin, user } = useAuth();
   const { deleteReview, restoreReview } = useData();
+  const navigate = useNavigate();
 
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this review?')) {
@@ -37,6 +39,10 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
     if (window.confirm('Are you sure you want to restore this review?')) {
       await restoreReview(review.id, review.landlord_id);
     }
+  };
+
+  const handleEdit = () => {
+    navigate(`/landlord/${review.landlord_id}/review/${review.id}/edit`);
   };
 
   // Check if the current user created this review
@@ -97,22 +103,33 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
         )}
       </div>
       
-       {isAdmin && (
+      {/* Action buttons */}
+      {(isOwnReview || isAdmin) && (
         <div className="mt-4 text-right flex justify-end gap-2">
-          {review.is_deleted ? (
+          {isOwnReview && !review.is_deleted && (
             <button
-              onClick={handleRestore}
-              className="px-3 py-1 text-xs font-medium text-white bg-green-600 rounded hover:bg-green-700"
+              onClick={handleEdit}
+              className="px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700"
             >
-              Restore Review
+              Edit Review
             </button>
-          ) : (
-            <button
-              onClick={handleDelete}
-              className="px-3 py-1 text-xs font-medium text-white bg-red-600 rounded hover:bg-red-700"
-            >
-              Delete Review
-            </button>
+          )}
+          {isAdmin && (
+            review.is_deleted ? (
+              <button
+                onClick={handleRestore}
+                className="px-3 py-1 text-xs font-medium text-white bg-green-600 rounded hover:bg-green-700"
+              >
+                Restore Review
+              </button>
+            ) : (
+              <button
+                onClick={handleDelete}
+                className="px-3 py-1 text-xs font-medium text-white bg-red-600 rounded hover:bg-red-700"
+              >
+                Delete Review
+              </button>
+            )
           )}
         </div>
       )}

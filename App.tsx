@@ -10,6 +10,7 @@ import MainPage from './pages/MainPage';
 import LandlordPage from './pages/LandlordPage';
 import AddLandlordPage from './pages/AddLandlordPage';
 import AddReviewPage from './pages/AddReviewPage';
+import EditReviewPage from './pages/EditReviewPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import AdminPage from './pages/AdminPage';
@@ -26,6 +27,7 @@ function App() {
                 <Route path="/" element={<MainPage />} />
                 <Route path="/landlord/:id" element={<LandlordPage />} />
                 <Route path="/landlord/:id/add-review" element={<AddReviewPage />} />
+                <Route path="/landlord/:id/review/:reviewId/edit" element={<EditReviewPage />} />
                 <Route path="/add-landlord" element={<AddLandlordPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
