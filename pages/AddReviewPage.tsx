@@ -4,6 +4,8 @@ import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import type { Landlord } from '../types';
 import ReviewForm from '../components/ReviewForm';
+import { uploadVerificationFile } from '../services/api';
+import { supabase } from '../services/supabase';
 
 const AddReviewPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +23,7 @@ const AddReviewPage: React.FC = () => {
   const [rentAmount, setRentAmount] = useState('');
   const [propertyAddress, setPropertyAddress] = useState('');
   const [verificationFile, setVerificationFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const landlordId = Number(id);
 
@@ -32,13 +35,29 @@ const AddReviewPage: React.FC = () => {
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (!comment) {
-        alert('Please add a comment to your review.');
-        return;
+      alert('Please add a comment to your review.');
+      return;
     }
-    const reviewData = {
+
+    // Warn anonymous users that they can't edit later
+    if (!user) {
+      const confirmSubmit = confirm(
+        'You are submitting as a guest. Your review cannot be edited or verified after submission. Are you sure you want to continue?'
+      );
+      if (!confirmSubmit) {
+        return;
+      }
+    }
+
+    setUploading(true);
+
+    try {
+      // First, create the review
+      const reviewData = {
         landlord_id: landlordId,
-        user_id: user?.id || undefined, // Optional: undefined for anonymous users
+        user_id: user?.id || undefined,
         rating,
         communication,
         maintenance,
@@ -47,16 +66,37 @@ const AddReviewPage: React.FC = () => {
         would_rent_again: wouldRentAgain,
         rent_amount: rentAmount ? parseFloat(rentAmount) : undefined,
         property_address: propertyAddress || undefined,
-        verification_status: verificationFile ? 'pending' : 'unverified' as const
-    };
+        verification_status: verificationFile ? 'pending' : 'unverified' as const,
+        verification_file_url: undefined
+      };
 
-    try {
-        await addReview(reviewData);
-        alert('Review submitted successfully!');
-        navigate(`/landlord/${landlordId}`);
+      const newReview = await addReview(reviewData);
+
+      // If there's a verification file, upload it
+      if (verificationFile && user?.id) {
+        try {
+          const filePath = await uploadVerificationFile(verificationFile, user.id, newReview.id);
+          
+          // Update the review with the file path
+          const { error: updateError } = await supabase
+            .from('reviews')
+            .update({ verification_file_url: filePath })
+            .eq('id', newReview.id);
+
+          if (updateError) throw updateError;
+        } catch (uploadError) {
+          console.error('Failed to upload verification file:', uploadError);
+          alert(`Review submitted, but file upload failed: ${uploadError?.message || 'Unknown error'}. Your review will be marked as unverified.`);
+        }
+      }
+
+      alert('Review submitted successfully!');
+      navigate(`/landlord/${landlordId}`);
     } catch(err) {
-        console.error('Failed to submit review:', err);
-        alert('Failed to submit review. Please try again.');
+      console.error('Failed to submit review:', err);
+      alert(`Failed to submit review: ${err?.message || 'Unknown error'}`);
+    } finally {
+      setUploading(false);
     }
   };
   
@@ -70,7 +110,7 @@ const AddReviewPage: React.FC = () => {
         <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
           <p className="text-sm text-yellow-800">
             📝 You're submitting as a guest. 
-            <a href="/login" className="underline ml-1 font-semibold">Log in</a> to edit your review later.
+            <a href="/login" className="underline ml-1 font-semibold">Log in</a> to edit your review later and get it verified.
           </p>
         </div>
       )}
@@ -96,9 +136,13 @@ const AddReviewPage: React.FC = () => {
           verificationFile={verificationFile}
           setVerificationFile={setVerificationFile}
           commentRequired={true}
+          showFileUpload={!!user}
         />
 
-        <button type="submit" className="w-full py-3 px-4 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75">
+        <button 
+          type="submit" 
+          disabled={uploading}
+          className="w-full py-3 px-4 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed">
           Submit Review
         </button>
       </form>

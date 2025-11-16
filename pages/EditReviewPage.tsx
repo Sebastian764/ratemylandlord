@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import type { Review } from '../types';
 import ReviewForm from '../components/ReviewForm';
 import { supabase } from '../services/supabase';
+import { uploadVerificationFile, deleteVerificationFile } from '../services/api';
 
 const EditReviewPage: React.FC = () => {
   const { id, reviewId } = useParams<{ id: string; reviewId: string }>();
@@ -23,6 +24,7 @@ const EditReviewPage: React.FC = () => {
   const [rentAmount, setRentAmount] = useState('');
   const [propertyAddress, setPropertyAddress] = useState('');
   const [verificationFile, setVerificationFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const landlordId = Number(id);
   const reviewIdNum = Number(reviewId);
@@ -72,12 +74,40 @@ const EditReviewPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (!comment) {
       alert('Please add a comment to your review.');
       return;
     }
 
+    if (!user) {
+      alert('You must be logged in to edit a review');
+      return;
+    }
+
+    setUploading(true);
+
     try {
+      let newVerificationStatus = review?.verification_status || 'unverified';
+      let newVerificationFileUrl = review?.verification_file_url || null;
+
+      // If a new verification file is uploaded
+      if (verificationFile) {
+        // Delete old file if it exists
+        if (review?.verification_file_url) {
+          try {
+            await deleteVerificationFile(review.verification_file_url);
+          } catch (err) {
+            console.error('Failed to delete old verification file:', err);
+          }
+        }
+
+        // Upload new file
+        const filePath = await uploadVerificationFile(verificationFile, user.id, reviewIdNum);
+        newVerificationFileUrl = filePath;
+        newVerificationStatus = 'pending';
+      }
+
       const { error } = await supabase
         .from('reviews')
         .update({
@@ -89,6 +119,8 @@ const EditReviewPage: React.FC = () => {
           would_rent_again: wouldRentAgain,
           rent_amount: rentAmount ? parseFloat(rentAmount) : null,
           property_address: propertyAddress || null,
+          verification_status: newVerificationStatus,
+          verification_file_url: newVerificationFileUrl,
           updated_at: new Date().toISOString()
         })
         .eq('id', reviewIdNum);
@@ -99,9 +131,10 @@ const EditReviewPage: React.FC = () => {
       navigate(`/landlord/${landlordId}`);
       window.location.reload();
     } catch (err) {
-      const errorMessage = err?.message || (typeof err === 'string' ? err : 'Failed to update review. Please try again.');
-      alert(`Failed to update review: ${errorMessage}`);
-      alert('Failed to update review. Please try again.');
+      console.error('Failed to update review:', err);
+      alert(`Failed to update review: ${err?.message || String(err) || 'Unknown error'}`);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -112,6 +145,14 @@ const EditReviewPage: React.FC = () => {
       <h1 className="text-3xl font-bold mb-2 text-center">Edit Review For</h1>
       <h2 className="text-xl text-gray-600 mb-6 text-center">{landlordName}</h2>
       <h2 className="text-xl text-gray-600 mb-6 text-center">Upload verification below to get your review verified</h2>
+
+      {review.verification_file_url && (
+        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+          <p className="text-sm text-blue-800">
+            ✅ You have already uploaded a verification file. Upload a new file to replace it.
+          </p>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <ReviewForm
@@ -134,6 +175,7 @@ const EditReviewPage: React.FC = () => {
           verificationFile={verificationFile}
           setVerificationFile={setVerificationFile}
           commentRequired={true}
+          showFileUpload={true}
         />
 
         <div className="flex gap-4">
@@ -146,9 +188,10 @@ const EditReviewPage: React.FC = () => {
           </button>
           <button
             type="submit"
-            className="flex-1 py-3 px-4 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75"
+            disabled={uploading}
+            className="flex-1 py-3 px-4 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Update Review
+            {uploading ? 'Updating...' : 'Update Review'}
           </button>
         </div>
       </form>

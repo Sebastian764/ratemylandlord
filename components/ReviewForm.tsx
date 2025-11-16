@@ -1,4 +1,5 @@
 import React from 'react';
+import { validateVerificationFile } from '../utils/fileValidation';
 
 interface ReviewFormProps {
   rating: number;
@@ -20,6 +21,7 @@ interface ReviewFormProps {
   verificationFile: File | null;
   setVerificationFile: (file: File | null) => void;
   commentRequired?: boolean;
+  showFileUpload?: boolean;
 }
 
 const ReviewForm: React.FC<ReviewFormProps> = ({
@@ -42,9 +44,30 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
   verificationFile,
   setVerificationFile,
   commentRequired = false,
+  showFileUpload = true,
 }) => {
   const formInputStyle = "w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500";
   const formLabelStyle = "block mb-1 font-semibold text-gray-700";
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    
+    if (!file) {
+      setVerificationFile(null);
+      return;
+    }
+
+    // Validate file using shared utility
+    const validation = validateVerificationFile(file);
+    if (!validation.isValid) {
+      alert(validation.error);
+      e.target.value = ''; // Clear the input
+      setVerificationFile(null);
+      return;
+    }
+
+    setVerificationFile(file);
+  };
 
   return (
     <div className="space-y-4 p-4 border rounded-md bg-gray-50">
@@ -139,16 +162,26 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
         />
       </div>
 
-      <div>
-        <label htmlFor="verification" className={formLabelStyle}>Upload Verification (Optional)</label>
-        <input 
-          type="file" 
-          id="verification" 
-          onChange={e => setVerificationFile(e.target.files ? e.target.files[0] : null)} 
-          className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
-        />
-        <p className="text-xs text-gray-500 mt-1">E.g., a redacted copy of your lease agreement. This helps verify your review.</p>
-      </div>
+      {showFileUpload && (
+        <div>
+          <label htmlFor="verification" className={formLabelStyle}>Upload Verification (Optional - PDF only, max 5MB)</label>
+          <input 
+            type="file" 
+            id="verification"
+            accept="application/pdf"
+            onChange={handleFileChange}
+            className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
+          />
+          {verificationFile && (
+            <p className="text-xs text-green-600 mt-1">
+              ✓ Selected: {verificationFile.name} ({(verificationFile.size / 1024).toFixed(2)} KB)
+            </p>
+          )}
+          <p className="text-xs text-gray-500 mt-1">
+            E.g., a redacted copy of your lease agreement. This helps verify your review. Only PDF files up to 5MB are accepted.
+          </p>
+        </div>
+      )}
     </div>
   );
 };

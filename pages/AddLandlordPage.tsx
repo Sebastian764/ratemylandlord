@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import ReviewForm from '../components/ReviewForm';
+import { uploadVerificationFile } from '../services/api';
+import { supabase } from '../services/supabase';
 
 const AddLandlordPage: React.FC = () => {
   const [name, setName] = useState('');
@@ -17,6 +19,7 @@ const AddLandlordPage: React.FC = () => {
   const [rentAmount, setRentAmount] = useState('');
   const [propertyAddress, setPropertyAddress] = useState('');
   const [verificationFile, setVerificationFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const { addLandlord: apiAddLandlord } = useData();
   const { user } = useAuth();
@@ -24,16 +27,20 @@ const AddLandlordPage: React.FC = () => {
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (!name) {
       alert('Please fill in landlord name.');
       return;
     }
+
+    setUploading(true);
 
     const landlordData = { 
       name, 
       addresses: address ? [address] : undefined,
       city: 'Pittsburgh' 
     };
+    
     let reviewData;
     if (addReview) {
       reviewData = {
@@ -46,17 +53,49 @@ const AddLandlordPage: React.FC = () => {
         would_rent_again: wouldRentAgain,
         rent_amount: rentAmount ? parseFloat(rentAmount) : undefined,
         property_address: propertyAddress || undefined,
-        verification_status: verificationFile ? 'pending' : 'unverified' as const
+        verification_status: verificationFile ? 'pending' : 'unverified' as const,
+        verification_file_url: undefined
       };
     }
     
     try {
-        const newLandlord = await apiAddLandlord(landlordData, reviewData);
-        alert('Landlord added successfully!');
-        navigate(`/landlord/${newLandlord.id}`);
+      const newLandlord = await apiAddLandlord(landlordData, reviewData);
+      
+      // If there's a verification file and a review was added, upload it
+      if (verificationFile && reviewData && user?.id) {
+        try {
+          // Get the review that was just created
+          const { data: reviews } = await supabase
+            .from('reviews')
+            .select('id')
+            .eq('landlord_id', newLandlord.id)
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+          if (reviews && reviews.length > 0) {
+            const reviewId = reviews[0].id;
+            const filePath = await uploadVerificationFile(verificationFile, user.id, reviewId);
+            
+            // Update the review with the file path
+            await supabase
+              .from('reviews')
+              .update({ verification_file_url: filePath })
+              .eq('id', reviewId);
+          }
+        } catch (uploadError) {
+          console.error('Failed to upload verification file:', uploadError);
+          alert(`Landlord added, but file upload failed: ${uploadError?.message || 'Unknown error'}`);
+        }
+      }
+
+      alert('Landlord added successfully!');
+      navigate(`/landlord/${newLandlord.id}`);
     } catch(err) {
-        console.error('Failed to add landlord:', err);
-        alert('Failed to add landlord. Please try again.');
+      console.error('Failed to add landlord:', err);
+      alert(`Failed to add landlord: ${err?.message || 'Unknown error'}`);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -70,7 +109,7 @@ const AddLandlordPage: React.FC = () => {
         <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
           <p className="text-sm text-yellow-800">
             📝 You're submitting as a guest. 
-            <a href="/login" className="underline ml-1 font-semibold">Log in</a> to edit your submissions later.
+            <a href="/login" className="underline ml-1 font-semibold">Log in</a> to edit your submissions later and upload verification.
           </p>
         </div>
       )}
@@ -113,12 +152,17 @@ const AddLandlordPage: React.FC = () => {
               setPropertyAddress={setPropertyAddress}
               verificationFile={verificationFile}
               setVerificationFile={setVerificationFile}
+              showFileUpload={!!user}
             />
           </div>
         )}
 
-        <button type="submit" className="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
-          Submit Landlord
+        <button 
+          type="submit" 
+          disabled={uploading}
+          className="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {uploading ? 'Submitting...' : 'Submit Landlord'}
         </button>
       </form>
     </div>

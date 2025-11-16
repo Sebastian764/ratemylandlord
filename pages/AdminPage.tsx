@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import type { Landlord, Review } from '../types';
 import * as api from '../services/api';
+import { getVerificationFileUrl } from '../services/api';
 
 const AdminPage: React.FC = () => {
   const { isAdmin, loading: authLoading } = useAuth();
@@ -11,6 +12,7 @@ const AdminPage: React.FC = () => {
   const [pendingReviews, setPendingReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'landlords' | 'reviews'>('landlords');
+  const [downloadingFile, setDownloadingFile] = useState<number | null>(null);
 
   useEffect(() => {
     if (!authLoading && !isAdmin) {
@@ -37,6 +39,21 @@ const AdminPage: React.FC = () => {
       console.error('Error fetching pending items:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDownloadVerificationFile = async (reviewId: number, filePath: string) => {
+    setDownloadingFile(reviewId);
+    try {
+      const signedUrl = await getVerificationFileUrl(filePath);
+      
+      // Open in new tab
+      window.open(signedUrl, '_blank');
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      alert(`Failed to download verification file: ${error?.message || 'Unknown error'}`);
+    } finally {
+      setDownloadingFile(null);
     }
   };
 
@@ -70,31 +87,30 @@ const AdminPage: React.FC = () => {
   };
 
   const handleApproveReview = async (id: number) => {
-    if (!window.confirm('Are you sure you want to approve this review?')) {
+    if (!window.confirm('Are you sure you want to approve this review? The verification file will be deleted.')) {
       return;
     }
     
     try {
       await api.updateReviewVerificationStatus(id, 'verified');
       await fetchPendingItems();
+      alert('Review approved and verification file deleted.');
     } catch (error) {
-      const errorMsg = error && error.message ? error.message : String(error);
-      alert(`Failed to approve review: ${errorMsg}`);
-      alert('Failed to approve review');
+      alert(`Failed to approve review: ${error?.message || 'Unknown error'}`);
     }
   };
 
   const handleRejectReview = async (id: number) => {
-    if (!window.confirm('Are you sure you want to reject this review?')) {
+    if (!window.confirm('Are you sure you want to reject this review? The verification file will be deleted.')) {
       return;
     }
     
     try {
       await api.updateReviewVerificationStatus(id, 'unverified');
       await fetchPendingItems();
+      alert('Review rejected and verification file deleted.');
     } catch (error) {
-      alert(`Failed to reject review: ${error && error.message ? error.message : String(error)}`);
-      console.error('Error rejecting review:', error);
+      alert(`Failed to reject review: ${error?.message || 'Unknown error'}`);
     }
   };
 
@@ -229,14 +245,13 @@ const AdminPage: React.FC = () => {
 
                         {review.verification_file_url && (
                           <div className="mb-3">
-                            <a
-                              href={review.verification_file_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-blue-600 hover:underline text-sm"
+                            <button
+                              onClick={() => handleDownloadVerificationFile(review.id, review.verification_file_url!)}
+                              disabled={downloadingFile === review.id}
+                              className="text-blue-600 hover:underline text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              📎 View verification file
-                            </a>
+                              {downloadingFile === review.id ? '⏳ Loading...' : '📎 View verification file (PDF)'}
+                            </button>
                           </div>
                         )}
 
