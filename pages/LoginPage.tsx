@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import TurnstileWidget from '../components/TurnstileWidget';
+import { TurnstileInstance } from '@marsidev/react-turnstile';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -10,6 +12,8 @@ const LoginPage: React.FC = () => {
   const [resetEmail, setResetEmail] = useState('');
   const [resetMessage, setResetMessage] = useState('');
   const [resetError, setResetError] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState<string>('');
+  const turnstileRef = useRef<TurnstileInstance>(null);
   const { login, resetPassword, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -30,6 +34,11 @@ const LoginPage: React.FC = () => {
     setResetError('');
     setResetMessage('');
 
+    if (!turnstileToken) {
+      setResetError('Please complete the security verification.');
+      return;
+    }
+
     if (!resetEmail) {
       setResetError('Please enter your email address.');
       return;
@@ -42,9 +51,13 @@ const LoginPage: React.FC = () => {
         setShowResetModal(false);
         setResetEmail('');
         setResetMessage('');
+        setTurnstileToken('');
       }, 3000);
     } else {
       setResetError(result.error || 'Failed to send reset email.');
+      // Reset turnstile on error
+      turnstileRef.current?.reset();
+      setTurnstileToken('');
     }
   };
 
@@ -126,6 +139,12 @@ const LoginPage: React.FC = () => {
                   required
                 />
               </div>
+              <TurnstileWidget
+                turnstileRef={turnstileRef}
+                onSuccess={(token) => setTurnstileToken(token)}
+                onExpire={() => setTurnstileToken('')}
+                onError={() => setTurnstileToken('')}
+              />
               {resetError && <p className="text-red-500 text-sm">{resetError}</p>}
               {resetMessage && <p className="text-green-600 text-sm">{resetMessage}</p>}
               <div className="flex gap-3">
@@ -136,6 +155,8 @@ const LoginPage: React.FC = () => {
                     setResetEmail('');
                     setResetError('');
                     setResetMessage('');
+                    setTurnstileToken('');
+                    turnstileRef.current?.reset();
                   }}
                   className="flex-1 py-2 px-4 bg-gray-200 text-gray-800 font-semibold rounded-lg shadow-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75"
                 >
@@ -143,7 +164,8 @@ const LoginPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75"
+                  disabled={!turnstileToken}
+                  className="flex-1 py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 disabled:opacity-50"
                 >
                   Send Reset Link
                 </button>

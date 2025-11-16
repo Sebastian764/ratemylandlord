@@ -1,18 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import TurnstileWidget from '../components/TurnstileWidget';
+import { TurnstileInstance } from '@marsidev/react-turnstile';
 
 const RegisterPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState<string>('');
+  const turnstileRef = useRef<TurnstileInstance>(null);
   const { register, loading } = useAuth();
   const navigate = useNavigate();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (!turnstileToken) {
+      setError('Please complete the security verification.');
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
@@ -28,9 +37,16 @@ const RegisterPage: React.FC = () => {
       const success = await register(email, password);
       if (success) {
         navigate('/');
+      } else {
+        // Reset turnstile on failure
+        turnstileRef.current?.reset();
+        setTurnstileToken('');
       }
     } catch (err: any) {
       setError(err.message || 'Registration failed. Please try again.');
+      // Reset turnstile on error
+      turnstileRef.current?.reset();
+      setTurnstileToken('');
     }
   };
 
@@ -81,10 +97,16 @@ const RegisterPage: React.FC = () => {
               required
             />
           </div>
+          <TurnstileWidget
+            turnstileRef={turnstileRef}
+            onSuccess={(token) => setTurnstileToken(token)}
+            onExpire={() => setTurnstileToken('')}
+            onError={() => setTurnstileToken('')}
+          />
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !turnstileToken}
             className="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 disabled:opacity-50"
           >
             {loading ? 'Creating account...' : 'Sign Up'}

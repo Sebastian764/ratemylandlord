@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import type { Landlord } from '../types';
 import ReviewForm from '../components/ReviewForm';
+import TurnstileWidget from '../components/TurnstileWidget';
 import { uploadVerificationFile } from '../services/api';
 import { supabase } from '../services/supabase';
+import { TurnstileInstance } from '@marsidev/react-turnstile';
 
 const AddReviewPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -24,6 +26,8 @@ const AddReviewPage: React.FC = () => {
   const [propertyAddress, setPropertyAddress] = useState('');
   const [verificationFile, setVerificationFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string>('');
+  const turnstileRef = useRef<TurnstileInstance>(null);
 
   const landlordId = Number(id);
 
@@ -36,6 +40,11 @@ const AddReviewPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!turnstileToken) {
+      alert('Please complete the security verification.');
+      return;
+    }
+
     if (!comment) {
       alert('Please add a comment to your review.');
       return;
@@ -95,6 +104,9 @@ const AddReviewPage: React.FC = () => {
     } catch(err) {
       console.error('Failed to submit review:', err);
       alert(`Failed to submit review: ${err?.message || 'Unknown error'}`);
+      // Reset turnstile on error
+      turnstileRef.current?.reset();
+      setTurnstileToken('');
     } finally {
       setUploading(false);
     }
@@ -139,9 +151,16 @@ const AddReviewPage: React.FC = () => {
           showFileUpload={!!user}
         />
 
+        <TurnstileWidget
+          turnstileRef={turnstileRef}
+          onSuccess={(token) => setTurnstileToken(token)}
+          onExpire={() => setTurnstileToken('')}
+          onError={() => setTurnstileToken('')}
+        />
+
         <button 
           type="submit" 
-          disabled={uploading}
+          disabled={uploading || !turnstileToken}
           className="w-full py-3 px-4 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed">
           Submit Review
         </button>

@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import ReviewForm from '../components/ReviewForm';
+import TurnstileWidget from '../components/TurnstileWidget';
 import { uploadVerificationFile } from '../services/api';
 import { supabase } from '../services/supabase';
+import { TurnstileInstance } from '@marsidev/react-turnstile';
 
 const AddLandlordPage: React.FC = () => {
   const [name, setName] = useState('');
@@ -20,6 +22,8 @@ const AddLandlordPage: React.FC = () => {
   const [propertyAddress, setPropertyAddress] = useState('');
   const [verificationFile, setVerificationFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string>('');
+  const turnstileRef = useRef<TurnstileInstance>(null);
 
   const { addLandlord: apiAddLandlord } = useData();
   const { user } = useAuth();
@@ -28,6 +32,11 @@ const AddLandlordPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!turnstileToken) {
+      alert('Please complete the security verification.');
+      return;
+    }
+
     if (!name) {
       alert('Please fill in landlord name.');
       return;
@@ -94,6 +103,9 @@ const AddLandlordPage: React.FC = () => {
     } catch(err) {
       console.error('Failed to add landlord:', err);
       alert(`Failed to add landlord: ${err?.message || 'Unknown error'}`);
+      // Reset turnstile on error
+      turnstileRef.current?.reset();
+      setTurnstileToken('');
     } finally {
       setUploading(false);
     }
@@ -157,9 +169,16 @@ const AddLandlordPage: React.FC = () => {
           </div>
         )}
 
+        <TurnstileWidget
+          turnstileRef={turnstileRef}
+          onSuccess={(token) => setTurnstileToken(token)}
+          onExpire={() => setTurnstileToken('')}
+          onError={() => setTurnstileToken('')}
+        />
+
         <button 
           type="submit" 
-          disabled={uploading}
+          disabled={uploading || !turnstileToken}
           className="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {uploading ? 'Submitting...' : 'Submit Landlord'}
