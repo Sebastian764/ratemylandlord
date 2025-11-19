@@ -18,19 +18,41 @@ const ResetPasswordPage: React.FC = () => {
     // Check if user arrived via password recovery link
     const checkRecoverySession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
         
-        // Check if this is a recovery session by looking at the URL hash
+        // Check if we still have tokens in the URL hash (App.tsx is processing them)
         const hashParams = new URLSearchParams(globalThis.location.hash.substring(1));
-        const type = hashParams.get('type');
+        const hasTokensInUrl = hashParams.has('access_token') && hashParams.get('type') === 'recovery';
+
+        if (hasTokensInUrl) {
+          // App.tsx is still processing, wait a bit
+          setTimeout(() => {
+            void checkRecoverySession();
+          }, 100);
+          return;
+        }
+
+        const { data: { session }, error } = await supabase.auth.getSession();
         
-        if (type === 'recovery' && session) {
+        if (error || !session) {
+          setError('Invalid or expired password reset link. Please request a new one.');
+          setCheckingRecovery(false);
+          return;
+        }
+
+        // Verify this is a valid recovery session
+        // Check the sessionStorage flag set by App.tsx when processing recovery tokens
+        const recoveryFlag = sessionStorage.getItem('password_recovery');
+        
+        // The presence of the recovery flag indicates we came from a valid recovery link
+        // This flag is set in App.tsx after successfully processing the recovery tokens
+        const isRecoverySession = recoveryFlag === 'true';
+        
+        if (isRecoverySession) {
           setIsValidRecovery(true);
         } else {
           setError('Invalid or expired password reset link. Please request a new one.');
         }
       } catch (err) {
-        console.error('Recovery check error:', err);
         setError('Unable to verify password reset link.');
       } finally {
         setCheckingRecovery(false);
@@ -65,8 +87,12 @@ const ResetPasswordPage: React.FC = () => {
     setLoading(false);
 
     if (result.success) {
+      // Clear the recovery flag
+      sessionStorage.removeItem('password_recovery');
       setMessage('Password updated successfully! Redirecting to login...');
       setTimeout(() => {
+        // Sign out to ensure the recovery session is fully cleared
+        void supabase.auth.signOut();
         navigate('/login');
       }, 2000);
     } else {

@@ -1,8 +1,9 @@
 
-import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import React, { useEffect, useRef } from 'react';
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { DataProvider } from './context/DataContext';
+import { supabase } from './services/supabase';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import ContactPage from './pages/ContactPage';
@@ -18,31 +19,84 @@ import ResourcesPage from './pages/ResourcesPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 
+function AppContent() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isProcessingRef = useRef(false);
+
+  useEffect(() => {
+    // Handle password recovery tokens from URL hash
+    const handleRecoveryTokens = async () => {
+      // Prevent multiple simultaneous executions
+      if (isProcessingRef.current) return;
+
+      const hashParams = new URLSearchParams(location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      const type = hashParams.get('type');
+
+      // Only process recovery tokens once
+      if (type === 'recovery' && accessToken && refreshToken) {
+        isProcessingRef.current = true;
+        try {
+          // Set the session with recovery tokens
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+
+          if (error) {
+            console.error('Error setting recovery session:', error);
+            isProcessingRef.current = false;
+            return;
+          }
+          
+          // Mark this as a valid recovery session before navigating
+          sessionStorage.setItem('password_recovery', 'true');
+          
+          // Navigate to reset password page - React Router will handle the history
+          navigate('/reset-password', { replace: true });
+        } catch (error) {
+          console.error('Error setting recovery session:', error);
+        } finally {
+          isProcessingRef.current = false;
+        }
+      }
+    };
+
+    void handleRecoveryTokens();
+  }, [location, navigate]);
+
+  return (
+    <div className="flex flex-col min-h-screen bg-gray-50 text-gray-900 font-sans">
+      <Header />
+      <main className="flex-1 w-full">
+        <Routes>
+          <Route path="/" element={<MainPage />} />
+          <Route path="/landlord/:id" element={<LandlordPage />} />
+          <Route path="/landlord/:id/add-review" element={<AddReviewPage />} />
+          <Route path="/landlord/:id/review/:reviewId/edit" element={<EditReviewPage />} />
+          <Route path="/add-landlord" element={<AddLandlordPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/resources" element={<ResourcesPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
 function App() {
   return (
     <AuthProvider>
       <DataProvider>
         <BrowserRouter>
-          <div className="flex flex-col min-h-screen bg-gray-50 text-gray-900 font-sans">
-            <Header />
-            <main className="flex-1 w-full">
-              <Routes>
-                <Route path="/" element={<MainPage />} />
-                <Route path="/landlord/:id" element={<LandlordPage />} />
-                <Route path="/landlord/:id/add-review" element={<AddReviewPage />} />
-                <Route path="/landlord/:id/review/:reviewId/edit" element={<EditReviewPage />} />
-                <Route path="/add-landlord" element={<AddLandlordPage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="/admin" element={<AdminPage />} />
-                <Route path="/resources" element={<ResourcesPage />} />
-                <Route path="/reset-password" element={<ResetPasswordPage />} />
-                <Route path="*" element={<NotFoundPage />} />
-              </Routes>
-            </main>
-            <Footer />
-          </div>
+          <AppContent />
         </BrowserRouter>
       </DataProvider>
     </AuthProvider>
