@@ -10,6 +10,7 @@ interface AuthContextType {
   register: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
+  updatePassword: (password: string) => Promise<{ success: boolean; error?: string }>;
   loading: boolean;
 }
 
@@ -29,10 +30,10 @@ const checkIsAdmin = async (email: string): Promise<boolean> => {
 
   // Query database
   const isAdmin = await checkIsAdminUser(email);
-  
+
   // Cache result
   adminCache.set(email, { isAdmin, timestamp: Date.now() });
-  
+
   return isAdmin;
 };
 
@@ -43,11 +44,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     let mounted = true;
-    
+
     // Check active session on mount
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!mounted) return;
-      
+
       if (session?.user) {
         const userData: User = {
           id: session.user.id,
@@ -55,7 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         setUser(userData);
         setLoading(false); // Set loading false BEFORE admin check
-        
+
         // Check admin status AFTER user is set
         const adminStatus = await checkIsAdmin(session.user.email!);
         if (mounted) setIsAdmin(adminStatus);
@@ -69,14 +70,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!mounted) return;
-      
+
       if (session?.user) {
         const userData: User = {
           id: session.user.id,
           email: session.user.email!,
         };
         setUser(userData);
-        
+
         // TODO: try to remove this delay if possible
         // Check admin after a small delay
         setTimeout(async () => {
@@ -139,13 +140,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
 
       if (data.user) {
-        const userData: User = {
-          id: data.user.id,
-          email: data.user.email!,
-        };
-        setUser(userData);
-        const adminStatus = await checkIsAdmin(data.user.email!);
-        setIsAdmin(adminStatus);
+        // Do not set user here to prevent auto-login.
+        // The user must verify their email first.
         setLoading(false);
         return true;
       }
@@ -185,8 +181,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updatePassword = async (password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Update password error:', error);
+      return { success: false, error: 'An error occurred while updating the password.' };
+    }
+  };
+
   const value = useMemo(
-    () => ({ user, isAdmin, login, register, logout, resetPassword, loading }),
+    () => ({ user, isAdmin, login, register, logout, resetPassword, updatePassword, loading }),
     [user, isAdmin, loading]
   );
 
