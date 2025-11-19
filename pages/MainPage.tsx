@@ -33,14 +33,14 @@ const MainPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-blue-600 text-white py-20 px-4 relative overflow-hidden">
+      <div className="bg-blue-600 text-white py-16 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-800 opacity-90"></div>
         <div className="container mx-auto text-center relative z-10">
           <h1 className="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight animate-fade-in">
-            Find Your Next Home in Pittsburgh
+            Find Your Landlord
           </h1>
           <p className="text-xl md:text-2xl text-blue-100 mb-10 max-w-2xl mx-auto animate-slide-up">
-            Read honest reviews from students and tenants. Make informed decisions before you sign.
+            Search for landlords in Pittsburgh and read reviews from previous tenants.
           </p>
 
           <div className="max-w-2xl mx-auto relative animate-slide-up" style={{ animationDelay: '0.1s' }}>
@@ -82,7 +82,7 @@ const MainPage: React.FC = () => {
 
       {/* Content Section */}
       <div className="container mx-auto px-4 py-16">
-        <div className="flex justify-between items-end mb-8">
+        {/* <div className="flex justify-between items-end mb-8">
           <div>
             <h2 className="text-3xl font-bold text-gray-900">Top Rated Landlords</h2>
             <p className="text-gray-600 mt-2">Based on reviews from the community</p>
@@ -90,7 +90,7 @@ const MainPage: React.FC = () => {
           <div className="hidden md:block text-sm text-gray-500">
             Showing {filteredLandlords.length} results
           </div>
-        </div>
+        </div> */}
 
         {loading ? (
           <div className="flex justify-center items-center py-20">

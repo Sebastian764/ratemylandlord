@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../services/supabase';
 
 const ResetPasswordPage: React.FC = () => {
   const [password, setPassword] = useState('');
@@ -8,13 +9,46 @@ const ResetPasswordPage: React.FC = () => {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isValidRecovery, setIsValidRecovery] = useState(false);
+  const [checkingRecovery, setCheckingRecovery] = useState(true);
   const { updatePassword } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if user arrived via password recovery link
+    const checkRecoverySession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        // Check if this is a recovery session by looking at the URL hash
+        const hashParams = new URLSearchParams(globalThis.location.hash.substring(1));
+        const type = hashParams.get('type');
+        
+        if (type === 'recovery' && session) {
+          setIsValidRecovery(true);
+        } else {
+          setError('Invalid or expired password reset link. Please request a new one.');
+        }
+      } catch (err) {
+        console.error('Recovery check error:', err);
+        setError('Unable to verify password reset link.');
+      } finally {
+        setCheckingRecovery(false);
+      }
+    };
+
+    void checkRecoverySession();
+  }, []);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setMessage('');
+
+    if (!isValidRecovery) {
+      setError('Invalid password reset session.');
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
@@ -39,6 +73,41 @@ const ResetPasswordPage: React.FC = () => {
       setError(result.error || 'Failed to update password.');
     }
   };
+
+  if (checkingRecovery) {
+    return (
+      <div className="max-w-md mx-auto mt-20 px-4">
+        <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p className="mt-4 text-gray-600">Verifying reset link...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isValidRecovery) {
+    return (
+      <div className="max-w-md mx-auto mt-20 px-4">
+        <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+          <h1 className="text-3xl font-bold mb-6 text-center text-gray-900">Invalid Link</h1>
+          <div className="p-4 bg-red-50 text-red-700 rounded-lg border border-red-100 mb-6">
+            {error || 'This password reset link is invalid or has expired.'}
+          </div>
+          <p className="text-center text-gray-600 mb-6">
+            Please request a new password reset link from the login page.
+          </p>
+          <button
+            onClick={() => navigate('/login')}
+            className="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-xl shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-md mx-auto mt-20 px-4">

@@ -41,7 +41,7 @@ const Header: React.FC = () => {
               )}
               <div className="flex items-center gap-3">
                 <div className="hidden md:flex flex-col items-end">
-                  <span className="text-sm font-medium text-gray-900">{user.email?.split('@')[0]}</span>
+                  <span className="text-sm font-medium text-gray-900">{user.email}</span>
                   <span className="text-xs text-gray-500">{isAdmin ? 'Administrator' : 'Member'}</span>
                 </div>
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-medium shadow-sm">
