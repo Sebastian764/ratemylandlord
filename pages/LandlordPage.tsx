@@ -5,6 +5,7 @@ import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import type { Landlord, Review } from '../types';
 import ReviewCard from '../components/ReviewCard';
+import { updateLandlordAddresses } from '../services/api';
 
 const LandlordPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -12,6 +13,9 @@ const LandlordPage: React.FC = () => {
   const { isAdmin } = useAuth();
   const [landlord, setLandlord] = useState<Landlord | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [isEditingAddresses, setIsEditingAddresses] = useState(false);
+  const [newAddress, setNewAddress] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const landlordId = Number(id);
@@ -21,8 +25,41 @@ const LandlordPage: React.FC = () => {
     }
   }, [id, getLandlord, getReviewsForLandlord, isAdmin]);
 
+  const handleAddAddress = async () => {
+    if (!landlord || !newAddress.trim()) return;
+    
+    setIsSaving(true);
+    try {
+      const updatedAddresses = [...(landlord.addresses || []), newAddress.trim()];
+      await updateLandlordAddresses(landlord.id, updatedAddresses);
+      setLandlord({ ...landlord, addresses: updatedAddresses });
+      setNewAddress('');
+    } catch (error) {
+      console.error('Error adding address:', error);
+      alert('Failed to add address. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleRemoveAddress = async (addressToRemove: string) => {
+    if (!landlord) return;
+    
+    setIsSaving(true);
+    try {
+      const updatedAddresses = (landlord.addresses || []).filter(addr => addr !== addressToRemove);
+      await updateLandlordAddresses(landlord.id, updatedAddresses);
+      setLandlord({ ...landlord, addresses: updatedAddresses });
+    } catch (error) {
+      console.error('Error removing address:', error);
+      alert('Failed to remove address. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   // Filter out deleted reviews for non-admin users when calculating stats
-  const activeReviews = isAdmin ? reviews.filter(r => !r.is_deleted) : reviews; // Changed to snake_case
+  const activeReviews = isAdmin ? reviews.filter(r => !r.is_deleted) : reviews; 
   const averageRating = activeReviews.length > 0
     ? (activeReviews.reduce((acc, review) => acc + review.rating, 0) / activeReviews.length).toFixed(1)
     : 'N/A';
@@ -39,7 +76,7 @@ const LandlordPage: React.FC = () => {
         <div className="relative z-10 p-8">
           {/* Top Section: Basic Info & Overall Score */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 border-b border-gray-100 pb-8">
-            <div>
+            <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-4xl font-bold text-gray-900 tracking-tight">{landlord.name}</h1>
                 {landlord.status === 'pending' && (
@@ -53,12 +90,88 @@ const LandlordPage: React.FC = () => {
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-2 text-gray-600 text-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                {landlord.addresses && landlord.addresses.length > 0 ? `${landlord.addresses.join(', ')}, ` : ''}{landlord.city}
+              
+              {/* Location Section */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-gray-600 text-lg">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span>{landlord.city}</span>
+                </div>
+
+                {/* Addresses Display */}
+                {landlord.addresses && landlord.addresses.length > 0 && (
+                  <div className="ml-7 space-y-1">
+                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Known Addresses</div>
+                    {landlord.addresses.map((address, index) => (
+                      <div key={index} className="flex items-center gap-2 text-gray-600">
+                        <span className="text-sm">{address}</span>
+                        {isAdmin && isEditingAddresses && (
+                          <button
+                            onClick={() => handleRemoveAddress(address)}
+                            disabled={isSaving}
+                            className="text-red-500 hover:text-red-700 disabled:opacity-50"
+                            title="Remove address"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Admin Address Management */}
+                {isAdmin && (
+                  <div className="ml-7 mt-3">
+                    {!isEditingAddresses ? (
+                      <button
+                        onClick={() => setIsEditingAddresses(true)}
+                        className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                        Manage Addresses
+                      </button>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={newAddress}
+                            onChange={(e) => setNewAddress(e.target.value)}
+                            onKeyPress={(e) => e.key === 'Enter' && handleAddAddress()}
+                            placeholder="Enter new address"
+                            className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            disabled={isSaving}
+                          />
+                          <button
+                            onClick={handleAddAddress}
+                            disabled={!newAddress.trim() || isSaving}
+                            className="px-3 py-1.5 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Add
+                          </button>
+                          <button
+                            onClick={() => {
+                              setIsEditingAddresses(false);
+                              setNewAddress('');
+                            }}
+                            disabled={isSaving}
+                            className="px-3 py-1.5 text-sm bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50"
+                          >
+                            Done
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
