@@ -8,6 +8,7 @@ import TurnstileWidget from '../components/TurnstileWidget';
 import { uploadVerificationFile } from '../services/api';
 import { supabase } from '../services/supabase';
 import { TurnstileInstance } from '@marsidev/react-turnstile';
+import { isStudentEmail } from '../utils/studentVerification';
 
 const AddReviewPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -63,6 +64,9 @@ const AddReviewPage: React.FC = () => {
     setUploading(true);
 
     try {
+      // Check if user has a student email
+      const createdByStudent = isStudentEmail(user?.email);
+
       // First, create the review
       const reviewData = {
         landlord_id: landlordId,
@@ -76,7 +80,8 @@ const AddReviewPage: React.FC = () => {
         rent_amount: rentAmount ? parseFloat(rentAmount) : undefined,
         property_address: propertyAddress || undefined,
         verification_status: verificationFile ? 'pending' : 'unverified' as const,
-        verification_file_url: undefined
+        verification_file_url: undefined,
+        created_by_student: createdByStudent
       };
 
       const newReview = await addReview(reviewData);

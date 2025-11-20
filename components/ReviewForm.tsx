@@ -178,7 +178,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
             </p>
           )}
           <p className="text-xs text-gray-500 mt-1">
-            E.g., a redacted copy of your lease agreement. This helps verify your review. Only PDF files up to 15MB are accepted. Note that the file will only be used for verification purposes and will be deleted after verification.
+            E.g., a redacted copy of your lease agreement. This helps verify your review. Only PDF files up to 15MB are accepted. Note that the file will only be used for verification purposes and will be deleted immediately after verification.
           </p>
         </div>
       )}

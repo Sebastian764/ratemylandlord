@@ -108,6 +108,7 @@ const EditReviewPage: React.FC = () => {
         newVerificationStatus = 'pending';
       }
 
+      // Note: created_by_student is NOT updated during edit - it's set once at creation
       const { error } = await supabase
         .from('reviews')
         .update({
