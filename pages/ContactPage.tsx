@@ -8,7 +8,7 @@ const ContactPage: React.FC = () => {
         If you have any questions, feedback, or need assistance, please feel free to reach out to us. We value your input and are here to help!
       </p>
       <h2 className="text-2xl font-semibold mb-4 text-blue-600">Email</h2>
-      <p className="mb-6 text-gray-700">You can email us at <a href="mailto:placeholder@example.com" className="text-blue-600 hover:underline">placeholder@example.com</a>.</p> 
+      <p className="mb-6 text-gray-700">You can email us at <a href="mailto:pittratemylandlord@gmail.com" className="text-blue-600 hover:underline">pittratemylandlord@gmail.com</a>.</p> 
     </div>
   );
 };

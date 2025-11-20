@@ -1,6 +1,6 @@
 // Shared file validation utilities for verification files
 
-export const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+export const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB
 export const ALLOWED_FILE_TYPE = 'application/pdf';
 
 export interface FileValidationResult {
@@ -26,7 +26,7 @@ export const validateVerificationFile = (file: File): FileValidationResult => {
   if (file.size > MAX_FILE_SIZE) {
     return {
       isValid: false,
-      error: 'File size must be less than 5MB'
+      error: 'File size must be less than 15MB'
     };
   }
 

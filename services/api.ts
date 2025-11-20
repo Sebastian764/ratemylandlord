@@ -241,3 +241,17 @@ export const checkIsAdminUser = async (email: string): Promise<boolean> => {
     return false;
   }
 };
+
+// Update landlord addresses (admin only)
+export const updateLandlordAddresses = async (
+  landlordId: number,
+  addresses: string[]
+): Promise<boolean> => {
+  const { error } = await supabase
+    .from('landlords')
+    .update({ addresses })
+    .eq('id', landlordId);
+
+  if (error) throw error;
+  return true;
+};
