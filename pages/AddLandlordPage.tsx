@@ -28,10 +28,10 @@ const AddLandlordPage: React.FC = () => {
   const { addLandlord: apiAddLandlord } = useData();
   const { user } = useAuth();
   const navigate = useNavigate();
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!turnstileToken) {
       alert('Please complete the security verification.');
       return;
@@ -44,12 +44,12 @@ const AddLandlordPage: React.FC = () => {
 
     setUploading(true);
 
-    const landlordData = { 
-      name, 
+    const landlordData = {
+      name,
       addresses: address ? [address] : undefined,
-      city: 'Pittsburgh' 
+      city: 'Pittsburgh'
     };
-    
+
     let reviewData;
     if (addReview) {
       reviewData = {
@@ -66,10 +66,10 @@ const AddLandlordPage: React.FC = () => {
         verification_file_url: undefined
       };
     }
-    
+
     try {
       const newLandlord = await apiAddLandlord(landlordData, reviewData);
-      
+
       // If there's a verification file and a review was added, upload it
       if (verificationFile && reviewData && user?.id) {
         try {
@@ -85,7 +85,7 @@ const AddLandlordPage: React.FC = () => {
           if (reviews && reviews.length > 0) {
             const reviewId = reviews[0].id;
             const filePath = await uploadVerificationFile(verificationFile, user.id, reviewId);
-            
+
             // Update the review with the file path
             await supabase
               .from('reviews')
@@ -100,7 +100,7 @@ const AddLandlordPage: React.FC = () => {
 
       alert('Landlord added successfully!');
       navigate(`/landlord/${newLandlord.id}`);
-    } catch(err) {
+    } catch (err) {
       console.error('Failed to add landlord:', err);
       alert(`Failed to add landlord: ${err?.message || 'Unknown error'}`);
       // Reset turnstile on error
@@ -111,7 +111,7 @@ const AddLandlordPage: React.FC = () => {
     }
   };
 
-  const formInputStyle = "w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500";
+  const formInputStyle = "w-full p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500";
   const formLabelStyle = "block mb-1 font-semibold text-gray-700";
 
   return (
@@ -120,7 +120,7 @@ const AddLandlordPage: React.FC = () => {
       {!user && (
         <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
           <p className="text-sm text-yellow-800">
-            📝 You're submitting as a guest. 
+            📝 You're submitting as a guest.
             <a href="/login" className="underline ml-1 font-semibold">Log in</a> to edit your submissions later and upload verification.
           </p>
         </div>
@@ -134,12 +134,12 @@ const AddLandlordPage: React.FC = () => {
           <label htmlFor="address" className={formLabelStyle}>Property Address (Optional)</label>
           <input type="text" id="address" value={address} onChange={e => setAddress(e.target.value)} className={formInputStyle} />
         </div>
-        
+
         <div className="pt-4 border-t">
-            <label className="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" checked={addReview} onChange={e => setAddReview(e.target.checked)} className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                <span className="font-semibold text-gray-700">Add your review now?</span>
-            </label>
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" checked={addReview} onChange={e => setAddReview(e.target.checked)} className="h-5 w-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
+            <span className="font-semibold text-gray-700">Add your review now?</span>
+          </label>
         </div>
 
         {addReview && (
@@ -176,10 +176,10 @@ const AddLandlordPage: React.FC = () => {
           onError={() => setTurnstileToken('')}
         />
 
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           disabled={uploading || !turnstileToken}
-          className="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-3 px-4 bg-primary-600 text-white font-semibold rounded-lg shadow-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {uploading ? 'Submitting...' : 'Submit Landlord'}
         </button>

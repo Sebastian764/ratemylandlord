@@ -38,8 +38,8 @@ const ResourcesPage: React.FC = () => {
       <div className="space-y-12">
         {resources.map((section, index) => (
           <div key={index} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="bg-blue-50 px-6 py-4 border-b border-blue-100">
-              <h2 className="text-xl font-bold text-blue-900">{section.category}</h2>
+            <div className="bg-primary-50 px-6 py-4 border-b border-primary-100">
+              <h2 className="text-xl font-bold text-primary-900">{section.category}</h2>
             </div>
             <div className="divide-y divide-gray-100">
               {section.links.map((link, linkIndex) => (
@@ -50,12 +50,12 @@ const ResourcesPage: React.FC = () => {
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors mb-1">
+                      <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-600 transition-colors mb-1">
                         {link.title}
                       </h3>
                       <p className="text-gray-600">{link.description}</p>
                     </div>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400 group-hover:text-blue-500 transition-colors mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400 group-hover:text-primary-500 transition-colors mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
                   </div>

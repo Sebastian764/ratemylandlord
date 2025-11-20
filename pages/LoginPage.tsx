@@ -20,7 +20,7 @@ const LoginPage: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
+
     const success = await login(email, password);
     if (success) {
       navigate('/');
@@ -76,7 +76,7 @@ const LoginPage: React.FC = () => {
                 setEmail(e.target.value);
                 setError('');
               }}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-slate-500 focus:border-slate-500"
               required
             />
           </div>
@@ -90,7 +90,7 @@ const LoginPage: React.FC = () => {
                 setPassword(e.target.value);
                 setError('');
               }}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-slate-500 focus:border-slate-500"
               required
             />
           </div>
@@ -98,18 +98,21 @@ const LoginPage: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 disabled:opacity-50"
+            className="w-full py-3 px-4 bg-primary-600 text-white font-semibold rounded-lg shadow-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
         <p className="mt-4 text-center text-sm text-gray-600">
-          Don't have an account? <Link to="/register" className="text-blue-600 hover:text-blue-800 font-semibold">Sign up</Link>
+          Don't have an account?{' '}
+          <Link to="/register" className="font-medium text-primary-600 hover:text-primary-800">
+            Sign up now
+          </Link>
         </p>
         <p className="mt-2 text-center text-sm text-gray-600">
           <button
             onClick={() => setShowResetModal(true)}
-            className="text-blue-600 hover:text-blue-800 font-semibold"
+            className="text-slate-900 hover:text-slate-700 font-semibold"
           >
             Forgot password?
           </button>
@@ -134,7 +137,7 @@ const LoginPage: React.FC = () => {
                     setResetEmail(e.target.value);
                     setResetError('');
                   }}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-slate-500 focus:border-slate-500"
                   placeholder="Enter your email"
                   required
                 />
@@ -165,7 +168,7 @@ const LoginPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={!turnstileToken}
-                  className="flex-1 py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 disabled:opacity-50"
+                  className="flex-1 py-2 px-4 bg-slate-900 text-white font-semibold rounded-lg shadow-md hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-opacity-75 disabled:opacity-50"
                 >
                   Send Reset Link
                 </button>

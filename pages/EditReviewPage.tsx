@@ -74,7 +74,7 @@ const EditReviewPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!comment) {
       alert('Please add a comment to your review.');
       return;
@@ -148,8 +148,8 @@ const EditReviewPage: React.FC = () => {
       <h2 className="text-xl text-gray-600 mb-6 text-center">Upload verification below to get your review verified</h2>
 
       {review.verification_file_url && (
-        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
-          <p className="text-sm text-blue-800">
+        <div className="mb-4 p-4 bg-primary-50 border border-primary-200 rounded-md">
+          <p className="text-sm text-primary-800">
             ✅ You have already uploaded a verification file. Upload a new file to replace it.
           </p>
         </div>

@@ -68,7 +68,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <span>{new Date(review.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
             {isOwnReview && (
-              <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">You</span>
+              <span className="px-2 py-0.5 bg-primary-50 text-primary-700 rounded-full text-xs font-medium">You</span>
             )}
           </div>
         </div>
@@ -88,7 +88,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
               Verified Tenant
             </span>
           ) : review.verification_status === 'pending' ? (
-            <span className="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded-full border border-blue-200">
+            <span className="inline-flex items-center px-3 py-1 text-xs font-medium text-secondary-700 bg-secondary-50 rounded-full border border-secondary-200">
               <svg className="w-3 h-3 mr-1 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
               Verification Pending
             </span>
@@ -151,7 +151,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
           {isOwnReview && !review.is_deleted && (
             <button
               onClick={handleEdit}
-              className="px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+              className="px-3 py-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors"
             >
               Edit
             </button>

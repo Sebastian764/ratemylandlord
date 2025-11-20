@@ -18,7 +18,7 @@ const ResetPasswordPage: React.FC = () => {
     // Check if user arrived via password recovery link
     const checkRecoverySession = async () => {
       try {
-        
+
         // Check if we still have tokens in the URL hash (App.tsx is processing them)
         const hashParams = new URLSearchParams(globalThis.location.hash.substring(1));
         const hasTokensInUrl = hashParams.has('access_token') && hashParams.get('type') === 'recovery';
@@ -32,7 +32,7 @@ const ResetPasswordPage: React.FC = () => {
         }
 
         const { data: { session }, error } = await supabase.auth.getSession();
-        
+
         if (error || !session) {
           setError('Invalid or expired password reset link. Please request a new one.');
           setCheckingRecovery(false);
@@ -42,11 +42,11 @@ const ResetPasswordPage: React.FC = () => {
         // Verify this is a valid recovery session
         // Check the sessionStorage flag set by App.tsx when processing recovery tokens
         const recoveryFlag = sessionStorage.getItem('password_recovery');
-        
+
         // The presence of the recovery flag indicates we came from a valid recovery link
         // This flag is set in App.tsx after successfully processing the recovery tokens
         const isRecoverySession = recoveryFlag === 'true';
-        
+
         if (isRecoverySession) {
           setIsValidRecovery(true);
         } else {
@@ -105,7 +105,7 @@ const ResetPasswordPage: React.FC = () => {
       <div className="max-w-md mx-auto mt-20 px-4">
         <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
           <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
             <p className="mt-4 text-gray-600">Verifying reset link...</p>
           </div>
         </div>
@@ -126,7 +126,7 @@ const ResetPasswordPage: React.FC = () => {
           </p>
           <button
             onClick={() => navigate('/login')}
-            className="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-xl shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all"
+            className="w-full py-3 px-4 bg-primary-600 text-white font-semibold rounded-xl shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all"
           >
             Go to Login
           </button>
@@ -167,7 +167,7 @@ const ResetPasswordPage: React.FC = () => {
                 setConfirmPassword(e.target.value);
                 setError('');
               }}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors outline-none"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition-colors outline-none"
               placeholder="••••••••"
               required
             />
@@ -188,7 +188,7 @@ const ResetPasswordPage: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-xl shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-[0.98]"
+            className="w-full py-3 px-4 bg-primary-600 text-white font-semibold rounded-xl shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-[0.98]"
           >
             {loading ? 'Updating...' : 'Update Password'}
           </button>

@@ -54,9 +54,9 @@ const RegisterPage: React.FC = () => {
   if (success) {
     return (
       <div className="max-w-md mx-auto mt-20 px-4">
-        <div className="bg-white p-8 rounded-2xl shadow-lg text-center border border-blue-100">
-          <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="bg-white p-8 rounded-2xl shadow-lg text-center border border-slate-100">
+          <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-slate-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
           </div>
@@ -68,7 +68,7 @@ const RegisterPage: React.FC = () => {
           <div className="space-y-4">
             <Link
               to="/login"
-              className="block w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-xl shadow-sm hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="block w-full py-3 px-4 bg-slate-900 text-white font-semibold rounded-xl shadow-sm hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
             >
               Return to Login
             </Link>
@@ -128,7 +128,7 @@ const RegisterPage: React.FC = () => {
                 setConfirmPassword(e.target.value);
                 setError('');
               }}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors outline-none"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition-colors outline-none"
               placeholder="••••••••"
               required
             />
@@ -155,7 +155,7 @@ const RegisterPage: React.FC = () => {
           <button
             type="submit"
             disabled={loading || !turnstileToken}
-            className="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-xl shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-[0.98]"
+            className="w-full py-3 px-4 bg-primary-600 text-white font-semibold rounded-lg shadow-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-75 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-[0.98]"
           >
             {loading ? (
               <span className="flex items-center justify-center">
@@ -170,7 +170,7 @@ const RegisterPage: React.FC = () => {
         </form>
 
         <p className="mt-6 text-center text-sm text-gray-600">
-          Already have an account? <Link to="/login" className="text-blue-600 hover:text-blue-700 font-semibold hover:underline">Login</Link>
+          Already have an account? <Link to="/login" className="font-medium text-primary-600 hover:text-primary-800">Log in</Link>
         </p>
       </div>
     </div>

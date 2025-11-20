@@ -46,12 +46,12 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
   commentRequired = false,
   showFileUpload = true,
 }) => {
-  const formInputStyle = "w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500";
+  const formInputStyle = "w-full p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500";
   const formLabelStyle = "block mb-1 font-semibold text-gray-700";
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    
+
     if (!file) {
       setVerificationFile(null);
       return;
@@ -73,63 +73,63 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
     <div className="space-y-4 p-4 border rounded-md bg-gray-50">
       <div>
         <label className={formLabelStyle}>Overall Rating: {rating}/5</label>
-        <input 
-          type="range" 
-          min="1" 
-          max="5" 
-          value={rating} 
-          onChange={e => setRating(Number(e.target.value))} 
-          className="w-full" 
+        <input
+          type="range"
+          min="1"
+          max="5"
+          value={rating}
+          onChange={e => setRating(Number(e.target.value))}
+          className="w-full"
         />
       </div>
       <div>
         <label className={formLabelStyle}>Communication: {communication}/5</label>
-        <input 
-          type="range" 
-          min="1" 
-          max="5" 
-          value={communication} 
-          onChange={e => setCommunication(Number(e.target.value))} 
-          className="w-full" 
+        <input
+          type="range"
+          min="1"
+          max="5"
+          value={communication}
+          onChange={e => setCommunication(Number(e.target.value))}
+          className="w-full"
         />
       </div>
       <div>
         <label className={formLabelStyle}>Maintenance: {maintenance}/5</label>
-        <input 
-          type="range" 
-          min="1" 
-          max="5" 
-          value={maintenance} 
-          onChange={e => setMaintenance(Number(e.target.value))} 
-          className="w-full" 
+        <input
+          type="range"
+          min="1"
+          max="5"
+          value={maintenance}
+          onChange={e => setMaintenance(Number(e.target.value))}
+          className="w-full"
         />
       </div>
       <div>
         <label className={formLabelStyle}>Respectfulness: {respect}/5</label>
-        <input 
-          type="range" 
-          min="1" 
-          max="5" 
-          value={respect} 
-          onChange={e => setRespect(Number(e.target.value))} 
-          className="w-full" 
+        <input
+          type="range"
+          min="1"
+          max="5"
+          value={respect}
+          onChange={e => setRespect(Number(e.target.value))}
+          className="w-full"
         />
       </div>
       <div>
         <label htmlFor="comment" className={formLabelStyle}>Comment</label>
-        <textarea 
-          id="comment" 
-          value={comment} 
-          onChange={e => setComment(e.target.value)} 
-          className={formInputStyle} 
+        <textarea
+          id="comment"
+          value={comment}
+          onChange={e => setComment(e.target.value)}
+          className={formInputStyle}
           rows={4}
           required={commentRequired}
         ></textarea>
       </div>
       <div>
         <label className={formLabelStyle}>
-          <input 
-            type="checkbox" 
+          <input
+            type="checkbox"
             checked={wouldRentAgain}
             onChange={e => setWouldRentAgain(e.target.checked)}
           />
@@ -138,9 +138,9 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
       </div>
       <div>
         <label htmlFor="rentAmount" className={formLabelStyle}>How much was rent plus utilities? (Optional)</label>
-        <input 
-          type="number" 
-          id="rentAmount" 
+        <input
+          type="number"
+          id="rentAmount"
           value={rentAmount}
           onChange={e => setRentAmount(e.target.value)}
           min="0"
@@ -152,9 +152,9 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
 
       <div>
         <label htmlFor="propertyAddress" className={formLabelStyle}>Property Address (Optional)</label>
-        <input 
-          type="text" 
-          id="propertyAddress" 
+        <input
+          type="text"
+          id="propertyAddress"
           value={propertyAddress}
           onChange={e => setPropertyAddress(e.target.value)}
           placeholder="e.g., 123 Main St, Pittsburgh, PA"
@@ -165,12 +165,12 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
       {showFileUpload && (
         <div>
           <label htmlFor="verification" className={formLabelStyle}>Upload Verification (Optional)</label>
-          <input 
-            type="file" 
+          <input
+            type="file"
             id="verification"
             accept="application/pdf"
             onChange={handleFileChange}
-            className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
+            className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
           />
           {verificationFile && (
             <p className="text-xs text-green-600 mt-1">

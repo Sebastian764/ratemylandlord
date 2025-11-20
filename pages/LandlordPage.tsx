@@ -71,7 +71,7 @@ const LandlordPage: React.FC = () => {
     <div className="max-w-5xl mx-auto">
       {/* Landlord Header Card */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mb-8 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full -mr-32 -mt-32 opacity-50"></div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary-50 rounded-full -mr-32 -mt-32 opacity-50"></div>
 
         <div className="relative z-10 p-8">
           {/* Top Section: Basic Info & Overall Score */}
@@ -177,7 +177,7 @@ const LandlordPage: React.FC = () => {
 
             <div className="flex items-center gap-6 bg-gray-50 px-6 py-4 rounded-xl border border-gray-100">
               <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600">{averageRating}</div>
+                <div className="text-3xl font-bold text-primary-900">{averageRating}</div>
                 <div className="text-xs text-gray-500 font-medium uppercase tracking-wide">Overall Rating</div>
               </div>
               <div className="w-px h-10 bg-gray-200"></div>
@@ -268,7 +268,7 @@ const LandlordPage: React.FC = () => {
           {activeReviews.length > 0 && (
             <Link
               to={`/landlord/${id}/add-review`}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition shadow-sm"
+              className="inline-flex items-center px-4 py-2 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition shadow-sm"
             >
               Write a Review
             </Link>
@@ -287,7 +287,7 @@ const LandlordPage: React.FC = () => {
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-1">No reviews yet</h3>
               <p className="text-gray-500 mb-6">Be the first to share your experience with this landlord.</p>
-              <Link to={`/landlord/${id}/add-review`} className="inline-flex items-center px-4 py-2 font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+              <Link to={`/landlord/${id}/add-review`} className="inline-flex items-center px-4 py-2 font-medium text-primary-900 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors">
                 Write a Review
               </Link>
             </div>

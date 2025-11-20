@@ -46,7 +46,7 @@ const AdminPage: React.FC = () => {
     setDownloadingFile(reviewId);
     try {
       const signedUrl = await getVerificationFileUrl(filePath);
-      
+
       // Open in new tab
       window.open(signedUrl, '_blank');
     } catch (error) {
@@ -62,7 +62,7 @@ const AdminPage: React.FC = () => {
     if (!window.confirm('Are you sure you want to approve this landlord?')) {
       return;
     }
-    
+
     try {
       await api.updateLandlordStatus(id, 'approved');
       await fetchPendingItems();
@@ -76,7 +76,7 @@ const AdminPage: React.FC = () => {
     if (!window.confirm('Are you sure you want to reject this landlord?')) {
       return;
     }
-    
+
     try {
       await api.updateLandlordStatus(id, 'rejected');
       await fetchPendingItems();
@@ -90,7 +90,7 @@ const AdminPage: React.FC = () => {
     if (!window.confirm('Are you sure you want to approve this review? The verification file will be deleted.')) {
       return;
     }
-    
+
     try {
       await api.updateReviewVerificationStatus(id, 'verified');
       await fetchPendingItems();
@@ -104,7 +104,7 @@ const AdminPage: React.FC = () => {
     if (!window.confirm('Are you sure you want to reject this review? The verification file will be deleted.')) {
       return;
     }
-    
+
     try {
       await api.updateReviewVerificationStatus(id, 'unverified');
       await fetchPendingItems();
@@ -127,21 +127,19 @@ const AdminPage: React.FC = () => {
         <nav className="-mb-px flex space-x-8">
           <button
             onClick={() => setActiveTab('landlords')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'landlords'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'landlords'
+              ? 'border-primary-500 text-primary-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
           >
             Pending Landlords ({pendingLandlords.length})
           </button>
           <button
             onClick={() => setActiveTab('reviews')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'reviews'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeTab === 'reviews'
+              ? 'border-primary-500 text-primary-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
           >
             Pending Reviews ({pendingReviews.length})
           </button>
@@ -212,7 +210,7 @@ const AdminPage: React.FC = () => {
                           </span>
                           <span className="text-gray-500 ml-2">Overall Rating</span>
                         </div>
-                        
+
                         <div className="grid grid-cols-3 gap-4 mb-3">
                           <div>
                             <p className="text-sm text-gray-500">Communication</p>
@@ -229,7 +227,7 @@ const AdminPage: React.FC = () => {
                         </div>
 
                         <p className="text-gray-700 mb-3 italic">"{review.comment}"</p>
-                        
+
                         <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mb-3">
                           {review.property_address && (
                             <p><span className="font-semibold">Address:</span> {review.property_address}</p>
@@ -248,7 +246,7 @@ const AdminPage: React.FC = () => {
                             <button
                               onClick={() => handleDownloadVerificationFile(review.id, review.verification_file_url!)}
                               disabled={downloadingFile === review.id}
-                              className="text-blue-600 hover:underline text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="text-primary-600 hover:underline text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               {downloadingFile === review.id ? '⏳ Loading...' : '📎 View verification file (PDF)'}
                             </button>
@@ -259,7 +257,7 @@ const AdminPage: React.FC = () => {
                           Submitted: {new Date(review.created_at).toLocaleDateString()}
                         </p>
                       </div>
-                      
+
                       <div className="flex gap-2 ml-4">
                         <button
                           onClick={() => handleApproveReview(review.id)}

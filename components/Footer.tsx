@@ -10,10 +10,10 @@ const Footer: React.FC = () => {
             &copy; {new Date().getFullYear()} Rate My Landlord Pittsburgh. All rights reserved.
           </div>
           <div className="flex items-center gap-6">
-            <Link to="/contact" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+            <Link to="/contact" className="text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors">
               Contact Support
             </Link>
-            <Link to="/resources" className="text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors">
+            <Link to="/resources" className="text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors">
               Resources
             </Link>
           </div>
