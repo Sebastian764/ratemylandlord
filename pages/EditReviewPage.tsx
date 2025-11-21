@@ -177,6 +177,7 @@ const EditReviewPage: React.FC = () => {
           setVerificationFile={setVerificationFile}
           commentRequired={true}
           showFileUpload={true}
+          user={user}
         />
 
         <div className="flex gap-4">

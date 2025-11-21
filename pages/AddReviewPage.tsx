@@ -154,6 +154,7 @@ const AddReviewPage: React.FC = () => {
           setVerificationFile={setVerificationFile}
           commentRequired={true}
           showFileUpload={!!user}
+          user={user}
         />
 
         <TurnstileWidget
