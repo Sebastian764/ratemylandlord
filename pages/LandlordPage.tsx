@@ -26,7 +26,11 @@ const LandlordPage: React.FC = () => {
   }, [id, getLandlord, getReviewsForLandlord, isAdmin]);
 
   const handleAddAddress = async () => {
-    if (!landlord || !newAddress.trim()) return;
+    if (!landlord) return;
+    if (!newAddress.trim()) {
+      alert('Address cannot be empty.');
+      return;
+    }
     
     setIsSaving(true);
     try {

@@ -22,6 +22,7 @@ interface ReviewFormProps {
   setVerificationFile: (file: File | null) => void;
   commentRequired?: boolean;
   showFileUpload?: boolean;
+  user?: { id: string; email?: string } | null;
 }
 
 const ReviewForm: React.FC<ReviewFormProps> = ({
@@ -45,6 +46,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
   setVerificationFile,
   commentRequired = false,
   showFileUpload = true,
+  user = null,
 }) => {
   const formInputStyle = "w-full p-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500";
   const formLabelStyle = "block mb-1 font-semibold text-gray-700";
@@ -177,6 +179,15 @@ const ReviewForm: React.FC<ReviewFormProps> = ({
               ✓ Selected: {verificationFile.name} ({(verificationFile.size / 1024).toFixed(2)} KB)
             </p>
           )}
+
+          {user && !verificationFile && (
+            <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+              <p className="text-xs text-yellow-800">
+                ⚠️ Without a verification file, your review will be marked as unverified. You can upload a file now or later by editing your review to get it verified.
+              </p>
+            </div>
+          )}
+
           <p className="text-xs text-gray-500 mt-1">
             E.g., a redacted copy of your lease agreement. This helps verify your review. Only PDF files up to 15MB are accepted. Note that the file will only be used for verification purposes and will be deleted immediately after verification.
           </p>

@@ -18,11 +18,11 @@ const ResetPasswordPage: React.FC = () => {
     // Check if user arrived via password recovery link
     const checkRecoverySession = async () => {
       try {
-
         // Check if we still have tokens in the URL hash (App.tsx is processing them)
         const hashParams = new URLSearchParams(globalThis.location.hash.substring(1));
         const hasTokensInUrl = hashParams.has('access_token') && hashParams.get('type') === 'recovery';
 
+        // TODO: Add a retry limit to avoid potential infinite loops
         if (hasTokensInUrl) {
           // App.tsx is still processing, wait a bit
           setTimeout(() => {
@@ -32,7 +32,6 @@ const ResetPasswordPage: React.FC = () => {
         }
 
         const { data: { session }, error } = await supabase.auth.getSession();
-
         if (error || !session) {
           setError('Invalid or expired password reset link. Please request a new one.');
           setCheckingRecovery(false);
@@ -42,11 +41,11 @@ const ResetPasswordPage: React.FC = () => {
         // Verify this is a valid recovery session
         // Check the sessionStorage flag set by App.tsx when processing recovery tokens
         const recoveryFlag = sessionStorage.getItem('password_recovery');
-
+        
         // The presence of the recovery flag indicates we came from a valid recovery link
         // This flag is set in App.tsx after successfully processing the recovery tokens
         const isRecoverySession = recoveryFlag === 'true';
-
+        
         if (isRecoverySession) {
           setIsValidRecovery(true);
         } else {
