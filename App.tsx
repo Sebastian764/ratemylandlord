@@ -18,6 +18,7 @@ import AdminPage from './pages/AdminPage';
 import ResourcesPage from './pages/ResourcesPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
 
 function AppContent() {
   const navigate = useNavigate();
@@ -25,8 +26,8 @@ function AppContent() {
   const isProcessingRef = useRef(false);
 
   useEffect(() => {
-    // Handle password recovery tokens from URL hash
-    const handleRecoveryTokens = async () => {
+    // Handle auth tokens from URL hash (recovery and signup verification)
+    const handleAuthTokens = async () => {
       // Prevent multiple simultaneous executions
       if (isProcessingRef.current) return;
 
@@ -34,6 +35,14 @@ function AppContent() {
       const accessToken = hashParams.get('access_token');
       const refreshToken = hashParams.get('refresh_token');
       const type = hashParams.get('type');
+
+      // Handle email verification for new signups
+      if (type === 'signup' && accessToken) {
+        isProcessingRef.current = true;
+        navigate('/verify-email', { replace: true });
+        isProcessingRef.current = false;
+        return;
+      }
 
       // Only process recovery tokens once
       if (type === 'recovery' && accessToken && refreshToken) {
@@ -64,7 +73,7 @@ function AppContent() {
       }
     };
 
-    void handleRecoveryTokens();
+    void handleAuthTokens();
   }, [location, navigate]);
 
   return (
@@ -83,6 +92,7 @@ function AppContent() {
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/resources" element={<ResourcesPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
