@@ -8,10 +8,12 @@ const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [emailNotVerified, setEmailNotVerified] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetMessage, setResetMessage] = useState('');
   const [resetError, setResetError] = useState('');
+  const [resendMessage, setResendMessage] = useState('');
   const [turnstileToken, setTurnstileToken] = useState<string>('');
   const turnstileRef = useRef<TurnstileInstance>(null);
   const { login, resetPassword, loading } = useAuth();
@@ -20,12 +22,45 @@ const LoginPage: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
-    const success = await login(email, password);
-    if (success) {
+    setEmailNotVerified(false);
+    setResendMessage('');
+    
+    const result = await login(email, password);
+    if (result.success) {
       navigate('/');
     } else {
-      setError('Invalid email or password.');
+      setError(result.error || 'Invalid email or password.');
+      if (result.emailNotVerified) {
+        setEmailNotVerified(true);
+      }
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!email) {
+      setResendMessage('Please enter your email address.');
+      return;
+    }
+
+    try {
+      // Import supabase to resend verification
+      const { supabase } = await import('../services/supabase');
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+          emailRedirectTo: `${globalThis.location.origin}/verify-email`,
+        },
+      });
+
+      if (error) {
+        setResendMessage('Failed to resend verification email. Please try again.');
+      } else {
+        setResendMessage('Verification email sent! Please check your inbox.');
+      }
+    } catch (err) {
+      console.error('Error resending verification email:', err);
+      setResendMessage('Failed to resend verification email. Please try again.');
     }
   };
 
@@ -94,7 +129,27 @@ const LoginPage: React.FC = () => {
               required
             />
           </div>
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+          {error && (
+            <div className="space-y-2">
+              <p className="text-red-500 text-sm">{error}</p>
+              {emailNotVerified && (
+                <div className="flex flex-col space-y-2">
+                  <button
+                    type="button"
+                    onClick={handleResendVerification}
+                    className="text-sm text-blue-600 hover:text-blue-800 font-semibold text-left"
+                  >
+                    Resend Verification Email
+                  </button>
+                  {resendMessage && (
+                    <p className={`text-sm ${resendMessage.includes('sent') ? 'text-green-600' : 'text-red-500'}`}>
+                      {resendMessage}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
           <button
             type="submit"
             disabled={loading}

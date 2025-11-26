@@ -6,7 +6,7 @@ import type { User } from '../types';
 interface AuthContextType {
   user: User | null;
   isAdmin: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string; emailNotVerified?: boolean }>;
   register: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
@@ -98,7 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string; emailNotVerified?: boolean }> => {
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -106,7 +106,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        // Check if the error is due to unverified email
+        if (error.message.toLowerCase().includes('email not confirmed') || 
+            error.message.toLowerCase().includes('email confirmation') ||
+            error.status === 400) {
+          setLoading(false);
+          return { 
+            success: false, 
+            error: 'Please verify your email address before logging in. Check your inbox for the verification link.',
+            emailNotVerified: true 
+          };
+        }
+        setLoading(false);
+        return { success: false, error: 'Invalid email or password.' };
+      }
 
       if (data.user) {
         const userData: User = {
@@ -117,15 +131,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const adminStatus = await checkIsAdmin(data.user.email!);
         setIsAdmin(adminStatus);
         setLoading(false);
-        return true;
+        return { success: true };
       }
 
       setLoading(false);
-      return false;
+      return { success: false, error: 'Invalid email or password.' };
     } catch (error) {
       console.error('Login error:', error);
       setLoading(false);
-      return false;
+      return { success: false, error: 'An error occurred during login.' };
     }
   };
 
@@ -135,6 +149,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${globalThis.location.origin}/verify-email`,
+        },
       });
 
       if (error) throw error;
