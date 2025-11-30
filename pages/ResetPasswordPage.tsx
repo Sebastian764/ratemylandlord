@@ -15,16 +15,21 @@ const ResetPasswordPage: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user arrived via password recovery link
+    let retryCount = 0;
+    const maxRetries = 30;
+    
+    const scheduleRetry = (delay = 100) => {
+      retryCount++;
+      setTimeout(() => void checkRecoverySession(), delay);
+    };
+    
     const checkRecoverySession = async () => {
-      // Check for error parameters in the URL (from Supabase redirects)
       const hashParams = new URLSearchParams(globalThis.location.hash.substring(1));
       const urlError = hashParams.get('error');
       const errorCode = hashParams.get('error_code');
       const errorDescription = hashParams.get('error_description');
 
       if (urlError || errorCode) {
-        // Handle Supabase error redirects
         let errorMsg = 'Invalid or expired password reset link. Please request a new one.';
         if (errorCode === 'otp_expired') {
           errorMsg = 'The password reset link has expired. Please request a new one from the login page.';
@@ -36,19 +41,30 @@ const ResetPasswordPage: React.FC = () => {
         return;
       }
       
-      // Check if we still have tokens in the URL hash (App.tsx is processing them)
       const hasTokensInUrl = hashParams.has('access_token') && hashParams.get('type') === 'recovery';
-      // TODO: Add a retry limit to avoid potential infinite loops
-      if (hasTokensInUrl) {
-        // App.tsx is still processing, wait a bit and retry
-        setTimeout(() => {
-          void checkRecoverySession();
-        }, 100);
+      
+      if (hasTokensInUrl && retryCount < maxRetries) {
+        scheduleRetry();
+        return;
+      }
+
+      // Add initial delay to give App.tsx time to process tokens and set the flag
+      if (retryCount === 0) {
+        scheduleRetry(200);
         return;
       }
 
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const recoveryFlag = sessionStorage.getItem('password_recovery');
+        
+        const needsMoreTime = retryCount < maxRetries && 
+          ((!session && recoveryFlag === 'true') || (session && recoveryFlag !== 'true'));
+        
+        if (needsMoreTime) {
+          scheduleRetry();
+          return;
+        }
         
         if (sessionError || !session) {
           setError('Invalid or expired password reset link. Please request a new one.');
@@ -56,15 +72,7 @@ const ResetPasswordPage: React.FC = () => {
           return;
         }
 
-        // Verify this is a valid recovery session
-        // Check the sessionStorage flag set by App.tsx when processing recovery tokens
-        const recoveryFlag = sessionStorage.getItem('password_recovery');
-        
-        // The presence of the recovery flag indicates we came from a valid recovery link
-        // This flag is set in App.tsx after successfully processing the recovery tokens
-        const isRecoverySession = recoveryFlag === 'true';
-        
-        if (isRecoverySession) {
+        if (recoveryFlag === 'true') {
           setIsValidRecovery(true);
         } else {
           setError('Invalid or expired password reset link. Please request a new one.');
