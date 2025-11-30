@@ -73,6 +73,18 @@ function AppContent() {
           // Mark this as a valid recovery session before navigating
           sessionStorage.setItem('password_recovery', 'true');
           
+          // Wait for session to be fully established before navigating
+          // This prevents race conditions where ResetPasswordPage checks before session is ready
+          await new Promise(resolve => setTimeout(resolve, 150));
+          
+          // Verify session was established
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session) {
+            console.error('Session not established after setSession');
+            isProcessingRef.current = false;
+            return;
+          }
+          
           // Navigate to reset password page - React Router will handle the history
           navigate('/reset-password', { replace: true });
         } catch (error) {
