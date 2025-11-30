@@ -37,8 +37,18 @@ function AppContent() {
       const type = hashParams.get('type');
 
       // Handle email verification for new signups
+      // Don't navigate away - let Supabase process the tokens first, then navigate
       if (type === 'signup' && accessToken) {
         isProcessingRef.current = true;
+        try {
+          // Let Supabase process the tokens from the URL automatically
+          // This sets up the session before we navigate
+          await supabase.auth.getSession();
+          // Small delay to ensure session is established
+          await new Promise(resolve => setTimeout(resolve, 100));
+        } catch (error) {
+          console.error('Error processing signup tokens:', error);
+        }
         navigate('/verify-email', { replace: true });
         isProcessingRef.current = false;
         return;

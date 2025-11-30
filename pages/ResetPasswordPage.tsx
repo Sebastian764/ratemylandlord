@@ -17,24 +17,40 @@ const ResetPasswordPage: React.FC = () => {
   useEffect(() => {
     // Check if user arrived via password recovery link
     const checkRecoverySession = async () => {
-      try {
-        
-        // Check if we still have tokens in the URL hash (App.tsx is processing them)
-        const hashParams = new URLSearchParams(globalThis.location.hash.substring(1));
-        const hasTokensInUrl = hashParams.has('access_token') && hashParams.get('type') === 'recovery';
+      // Check for error parameters in the URL (from Supabase redirects)
+      const hashParams = new URLSearchParams(globalThis.location.hash.substring(1));
+      const urlError = hashParams.get('error');
+      const errorCode = hashParams.get('error_code');
+      const errorDescription = hashParams.get('error_description');
 
-        // TODO: Add a retry limit to avoid potential infinite loops
-        if (hasTokensInUrl) {
-          // App.tsx is still processing, wait a bit
-          setTimeout(() => {
-            void checkRecoverySession();
-          }, 100);
-          return;
+      if (urlError || errorCode) {
+        // Handle Supabase error redirects
+        let errorMsg = 'Invalid or expired password reset link. Please request a new one.';
+        if (errorCode === 'otp_expired') {
+          errorMsg = 'The password reset link has expired. Please request a new one from the login page.';
+        } else if (errorDescription) {
+          errorMsg = decodeURIComponent(errorDescription.replaceAll('+', ' '));
         }
+        setError(errorMsg);
+        setCheckingRecovery(false);
+        return;
+      }
+      
+      // Check if we still have tokens in the URL hash (App.tsx is processing them)
+      const hasTokensInUrl = hashParams.has('access_token') && hashParams.get('type') === 'recovery';
+      // TODO: Add a retry limit to avoid potential infinite loops
+      if (hasTokensInUrl) {
+        // App.tsx is still processing, wait a bit and retry
+        setTimeout(() => {
+          void checkRecoverySession();
+        }, 100);
+        return;
+      }
 
-        const { data: { session }, error } = await supabase.auth.getSession();
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (error || !session) {
+        if (sessionError || !session) {
           setError('Invalid or expired password reset link. Please request a new one.');
           setCheckingRecovery(false);
           return;
@@ -54,6 +70,7 @@ const ResetPasswordPage: React.FC = () => {
           setError('Invalid or expired password reset link. Please request a new one.');
         }
       } catch (err) {
+        console.error('Error checking recovery session:', err);
         setError('Unable to verify password reset link.');
       } finally {
         setCheckingRecovery(false);
