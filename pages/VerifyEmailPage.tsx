@@ -1,53 +1,90 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 
 const VerifyEmailPage: React.FC = () => {
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const navigate = useNavigate();
-  const location = useLocation();
+  const hasChecked = useRef(false);
+
+  const handleSuccess = useCallback(() => {
+    setStatus('success');
+    setTimeout(() => {
+      navigate('/', { replace: true });
+    }, 3000);
+  }, [navigate]);
+
+  const handleError = useCallback((message: string) => {
+    setStatus('error');
+    setErrorMessage(message);
+  }, []);
 
   useEffect(() => {
-    const verifyEmail = async () => {
-      // Check if this is an email verification callback
-      const hashParams = new URLSearchParams(location.hash.substring(1));
-      const type = hashParams.get('type');
-      const accessToken = hashParams.get('access_token');
+    // Prevent multiple checks
+    if (hasChecked.current) return;
+    hasChecked.current = true;
 
-      if (type === 'signup' && accessToken) {
-        // Email verification successful
-        setStatus('success');
+    // Check for error parameters in the URL (from Supabase redirects)
+    const hashParams = new URLSearchParams(globalThis.location.hash.substring(1));
+    const urlError = hashParams.get('error');
+    const errorCode = hashParams.get('error_code');
+    const errorDescription = hashParams.get('error_description');
+
+    if (urlError || errorCode) {
+      // Handle Supabase error redirects
+      let message = 'Email verification failed.';
+      if (errorCode === 'otp_expired') {
+        message = 'The verification link has expired. Please request a new one by registering again.';
+      } else if (errorDescription) {
+        message = decodeURIComponent(errorDescription.replaceAll('+', ' '));
+      }
+      handleError(message);
+      return;
+    }
+
+    // Listen for auth state changes - this catches the verification event
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        // Email verification was successful, user is now signed in
+        handleSuccess();
+      }
+    });
+
+    // Also check current session in case we already processed the tokens
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
         
-        // Redirect to home page after 3 seconds
-        setTimeout(() => {
-          navigate('/', { replace: true });
-        }, 3000);
-      } else if (!type && !accessToken) {
-        // No verification parameters, might be a direct visit
-        try {
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session) {
-            // Already logged in, redirect to home
-            navigate('/', { replace: true });
-          } else {
-            setStatus('error');
-            setErrorMessage('Invalid verification link. Please try registering again.');
-          }
-        } catch (error) {
-          console.error('Error checking session:', error);
-          setStatus('error');
-          setErrorMessage('An error occurred while checking your session. Please try again later.');
+        if (session) {
+          // User has a valid session - verification was successful
+          handleSuccess();
+        } else {
+          // No session - wait a moment for the auth state change to fire
+          // The tokens might still be processing
+          setTimeout(async () => {
+            const { data: { session: delayedSession } } = await supabase.auth.getSession();
+            if (delayedSession) {
+              handleSuccess();
+            } else {
+              // Still no session after delay, show error
+              handleError('Unable to verify your email. The link may have expired or already been used. Please try registering again.');
+            }
+          }, 1500);
         }
-      } else {
-        // Handle unexpected type values or malformed links
-        setStatus('error');
-        setErrorMessage('This link is not for email verification. If you need to verify your email, please check your inbox for the correct link.');
+      } catch (error) {
+        console.error('Error checking session:', error);
+        handleError('An error occurred while verifying your email. Please try again later.');
       }
     };
 
-    verifyEmail();
-  }, [location, navigate]);
+    void checkSession();
+
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [handleSuccess, handleError]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
