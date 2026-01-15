@@ -5,25 +5,25 @@ const ResourcesPage: React.FC = () => {
     {
       category: "Tenant Rights",
       links: [
-        { title: "Pittsburgh Tenant Rights Guide", url: "#", description: "Comprehensive guide to your rights as a renter in Pittsburgh." },
-        { title: "PA Landlord-Tenant Act", url: "#", description: "The official laws governing rental agreements in Pennsylvania." },
-        { title: "Fair Housing Rights", url: "#", description: "Information about protection against discrimination in housing." }
+        { title: "Pittsburgh Tenant Rights Guide", url: "https://www.attorneygeneral.gov/wp-content/uploads/2022/06/OAG-Consumer-Guide-Tenant-Landlord-Rights-v.13-web-version.pdf", description: "Comprehensive guide to your rights as a renter in Pittsburgh." },
+        { title: "PA Landlord-Tenant Act", url: "https://www.palegis.us/statutes/unconsolidated/law-information?sessYr=1951&sessInd=0&actNum=20", description: "The official laws governing rental agreements in Pennsylvania." },
+        { title: "Fair Housing Rights", url: "https://www.hud.gov/hud-partners#FairHousing", description: "Information about protection against discrimination in housing." }
       ]
     },
     {
       category: "Legal Aid & Support",
       links: [
-        { title: "Neighborhood Legal Services", url: "#", description: "Free legal representation for low-income tenants facing eviction." },
-        { title: "Community Justice Project", url: "#", description: "Legal advocacy for civil rights and economic justice." },
-        { title: "RentHelpPGH", url: "#", description: "Resources for rental assistance and eviction prevention." }
+        { title: "Neighborhood Legal Services", url: "https://nlsa.us/", description: "Free legal representation for low-income tenants facing eviction." },
+        { title: "Community Justice Project", url: "https://www.communityjusticeproject.org/", description: "Legal advocacy for civil rights and economic justice." },
+        { title: "RentHelpPGH", url: "https://renthelppgh.org/", description: "Resources for rental assistance and eviction prevention." }
       ]
     },
     {
       category: "Hotlines & Emergency",
       links: [
-        { title: "Allegheny Link", url: "#", description: "Single access point for housing and homelessness services." },
-        { title: "Utility Assistance (LIHEAP)", url: "#", description: "Help with heating and energy bills." },
-        { title: "Code Enforcement", url: "#", description: "Report unsafe living conditions or building code violations." }
+        { title: "Allegheny Link", url: "https://www.alleghenycounty.us/Services/Housing/Allegheny-Link", description: "Single access point for housing and homelessness services." },
+        { title: "Utility Assistance (LIHEAP)", url: "https://www.dhs.pa.gov/Services/Assistance/Pages/LIHEAP.aspx", description: "Help with heating and energy bills." },
+        { title: "Code Enforcement", url: "https://www.pittsburghpa.gov/Resident-Services/311", description: "Report unsafe living conditions or building code violations." }
       ]
     }
   ];

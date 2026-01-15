@@ -20,8 +20,8 @@ const Header: React.FC = () => {
             P
           </div>
           <div className="flex flex-col">
-            <span className="text-xl font-bold text-gray-900 leading-none tracking-tight group-hover:text-primary-600 transition-colors">
-              RateMyLandlord
+            <span className="text-xl font-bold text-gray-900 leading-none tracking-tight group-hover:text-blue-600 transition-colors">
+              RateYinzLandlord
             </span>
             <span className="text-xs font-medium text-gray-500 tracking-widest uppercase">Pittsburgh</span>
           </div>

@@ -7,7 +7,7 @@ const Footer: React.FC = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-sm text-gray-500">
-            &copy; {new Date().getFullYear()} Rate My Landlord Pittsburgh. All rights reserved.
+            &copy; {new Date().getFullYear()} RateYinzLandlord Pittsburgh. All rights reserved.
           </div>
           <div className="flex items-center gap-6">
             <Link to="/contact" className="text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors">
