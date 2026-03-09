@@ -25,65 +25,65 @@ const VerifyEmailPage: React.FC = () => {
     if (hasChecked.current) return;
     hasChecked.current = true;
 
-    // Check for error parameters in the URL (from Supabase redirects)
-    const hashParams = new URLSearchParams(globalThis.location.hash.substring(1));
-    const urlError = hashParams.get('error');
-    const errorCode = hashParams.get('error_code');
-    const errorDescription = hashParams.get('error_description');
+    const queryParams = new URLSearchParams(globalThis.location.search);
+    const tokenHash = queryParams.get('token_hash');
+    const rawType = queryParams.get('type');
 
-    if (urlError || errorCode) {
-      // Handle Supabase error redirects
-      let message = 'Email verification failed.';
-      if (errorCode === 'otp_expired') {
-        message = 'The verification link has expired. Please request a new one by registering again.';
-      } else if (errorDescription) {
-        message = decodeURIComponent(errorDescription.replaceAll('+', ' '));
-      }
-      handleError(message);
+    if (!tokenHash) {
+      handleError('Invalid verification link. Please request a new one by registering again.');
       return;
     }
 
-    // Listen for auth state changes - this catches the verification event
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        // Email verification was successful, user is now signed in
-        handleSuccess();
-      }
-    });
-
-    // Also check current session in case we already processed the tokens
-    const checkSession = async () => {
+    const verifyWithTokenHash = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session) {
-          // User has a valid session - verification was successful
-          handleSuccess();
-        } else {
-          // No session - wait a moment for the auth state change to fire
-          // The tokens might still be processing
-          setTimeout(async () => {
-            const { data: { session: delayedSession } } = await supabase.auth.getSession();
-            if (delayedSession) {
-              handleSuccess();
-            } else {
-              // Still no session after delay, show error
-              handleError('Unable to verify your email. The link may have expired or already been used. Please try registering again.');
-            }
-          }, 1500);
+        const allowedTypes = ['signup', 'invite', 'email', 'email_change'] as const;
+        const explicitType = (allowedTypes as readonly string[]).includes(rawType ?? '')
+          ? (rawType as (typeof allowedTypes)[number])
+          : null;
+
+        const candidateTypes: Array<(typeof allowedTypes)[number]> = explicitType
+          ? [explicitType]
+          : ['signup', 'email'];
+
+        let lastErrorMessage = 'Email verification failed.';
+
+        for (const otpType of candidateTypes) {
+          const { error } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: otpType,
+          });
+
+          if (!error) {
+            handleSuccess();
+            return;
+          }
+
+          lastErrorMessage = error.message || lastErrorMessage;
+
+          // If token is expired/used, no point trying more types.
+          if (lastErrorMessage.toLowerCase().includes('expired') || lastErrorMessage.toLowerCase().includes('already')) {
+            break;
+          }
         }
+
+        if (lastErrorMessage.toLowerCase().includes('expired')) {
+          handleError('The verification link has expired. Please request a new one by registering again.');
+          return;
+        }
+
+        if (lastErrorMessage.toLowerCase().includes('already')) {
+          handleError('This verification link was already used. Try logging in, or request another verification email.');
+          return;
+        }
+
+        handleError(`Email verification failed: ${lastErrorMessage}`);
       } catch (error) {
-        console.error('Error checking session:', error);
+        console.error('Error verifying email token:', error);
         handleError('An error occurred while verifying your email. Please try again later.');
       }
     };
 
-    void checkSession();
-
-    // Cleanup subscription on unmount
-    return () => {
-      subscription.unsubscribe();
-    };
+    void verifyWithTokenHash();
   }, [handleSuccess, handleError]);
 
   return (

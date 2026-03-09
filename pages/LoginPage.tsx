@@ -48,19 +48,19 @@ const LoginPage: React.FC = () => {
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: email,
+        // TODO: Remove emailRedirectTo — no longer used since custom Supabase email templates now build token_hash links directly to our domain.
         options: {
           emailRedirectTo: `${globalThis.location.origin}/verify-email`,
         },
       });
 
       if (error) {
-        setResendMessage('Failed to resend verification email. Please try again.');
-      } else {
-        setResendMessage('Verification email sent! Please check your inbox.');
+        console.error('Error resending verification email:', error);
       }
+      setResendMessage('If this account exists and is unverified, a new verification email has been sent. Please check your inbox and spam folder.');
     } catch (err) {
       console.error('Error resending verification email:', err);
-      setResendMessage('Failed to resend verification email. Please try again.');
+      setResendMessage('If this account exists and is unverified, a new verification email has been sent. Please check your inbox and spam folder.');
     }
   };
 
