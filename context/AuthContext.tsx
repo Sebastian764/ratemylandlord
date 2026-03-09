@@ -107,14 +107,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) {
-        // Check if the error is due to unverified email
-        if (error.message.toLowerCase().includes('email not confirmed') || 
-            error.message.toLowerCase().includes('email confirmation') ||
-            error.status === 400) {
+        // Only show resend verification for explicit unverified-email signals.
+        const message = error.message.toLowerCase();
+        const code = ((error as unknown as { code?: string }).code ?? '').toLowerCase();
+        const isUnverifiedEmail =
+          code === 'email_not_confirmed' ||
+          message.includes('email not confirmed') ||
+          message.includes('email confirmation');
+
+        if (isUnverifiedEmail) {
           setLoading(false);
           return { 
             success: false, 
-            error: 'There was an error. Please double check your credentials or verify your email address before logging in.',
+            error: 'Your email is not verified yet. Please verify your email and try again.',
             emailNotVerified: true 
           };
         }
@@ -149,6 +154,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        // TODO: Remove emailRedirectTo — no longer used since custom Supabase email templates now build token_hash links directly to our domain.
         options: {
           emailRedirectTo: `${globalThis.location.origin}/verify-email`,
         },
@@ -183,6 +189,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const resetPassword = async (email: string): Promise<{ success: boolean; error?: string }> => {
     try {
+      // TODO: Remove redirectTo — no longer used since custom Supabase email templates now build token_hash links directly to our domain.
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${globalThis.location.origin}/reset-password`,
       });

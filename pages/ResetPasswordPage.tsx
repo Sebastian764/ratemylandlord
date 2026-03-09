@@ -15,70 +15,44 @@ const ResetPasswordPage: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    let retryCount = 0;
-    const maxRetries = 30;
-    
-    const scheduleRetry = (delay = 100) => {
-      retryCount++;
-      setTimeout(() => void checkRecoverySession(), delay);
-    };
-    
     const checkRecoverySession = async () => {
-      const hashParams = new URLSearchParams(globalThis.location.hash.substring(1));
-      const urlError = hashParams.get('error');
-      const errorCode = hashParams.get('error_code');
-      const errorDescription = hashParams.get('error_description');
+      const queryParams = new URLSearchParams(globalThis.location.search);
+      const tokenHash = queryParams.get('token_hash');
+      const recoveryType = queryParams.get('type');
+      const verifiedTokenKey = 'verified_recovery_token_hash';
 
-      if (urlError || errorCode) {
-        let errorMsg = 'Invalid or expired password reset link. Please request a new one.';
-        if (errorCode === 'otp_expired') {
-          errorMsg = 'The password reset link has expired. Please request a new one from the login page.';
-        } else if (errorDescription) {
-          errorMsg = decodeURIComponent(errorDescription.replaceAll('+', ' '));
-        }
-        setError(errorMsg);
+      if (!tokenHash || recoveryType !== 'recovery') {
+        setError('Invalid or expired password reset link. Please request a new one.');
         setCheckingRecovery(false);
         return;
       }
-      
-      const hasTokensInUrl = hashParams.has('access_token') && hashParams.get('type') === 'recovery';
-      
-      if (hasTokensInUrl && retryCount < maxRetries) {
-        scheduleRetry();
-        return;
-      }
 
-      // Add initial delay to give App.tsx time to process tokens and set the flag
-      if (retryCount === 0) {
-        scheduleRetry(200);
+      // React Strict Mode can remount in development; avoid consuming a one-time token twice.
+      const cachedVerifiedToken = sessionStorage.getItem(verifiedTokenKey);
+      if (cachedVerifiedToken === tokenHash) {
+        setIsValidRecovery(true);
+        setCheckingRecovery(false);
         return;
       }
 
       try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        const recoveryFlag = sessionStorage.getItem('password_recovery');
-        
-        const needsMoreTime = retryCount < maxRetries && 
-          ((!session && recoveryFlag === 'true') || (session && recoveryFlag !== 'true'));
-        
-        if (needsMoreTime) {
-          scheduleRetry();
-          return;
-        }
-        
-        if (sessionError || !session) {
-          setError('Invalid or expired password reset link. Please request a new one.');
-          setCheckingRecovery(false);
-          return;
-        }
+        const { error: otpError } = await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type: 'recovery',
+        });
 
-        if (recoveryFlag === 'true') {
-          setIsValidRecovery(true);
+        if (otpError) {
+          if (otpError.message.toLowerCase().includes('expired')) {
+            setError('The password reset link has expired. Please request a new one from the login page.');
+          } else {
+            setError('Invalid or expired password reset link. Please request a new one.');
+          }
         } else {
-          setError('Invalid or expired password reset link. Please request a new one.');
+          sessionStorage.setItem(verifiedTokenKey, tokenHash);
+          setIsValidRecovery(true);
         }
       } catch (err) {
-        console.error('Error checking recovery session:', err);
+        console.error('Error verifying reset token:', err);
         setError('Unable to verify password reset link.');
       } finally {
         setCheckingRecovery(false);
@@ -113,11 +87,10 @@ const ResetPasswordPage: React.FC = () => {
     setLoading(false);
 
     if (result.success) {
-      // Clear the recovery flag
-      sessionStorage.removeItem('password_recovery');
+      sessionStorage.removeItem('verified_recovery_token_hash');
       setMessage('Password updated successfully! Redirecting to login...');
       setTimeout(() => {
-        // Sign out to ensure the recovery session is fully cleared
+        // Sign out to ensure any temporary recovery session is fully cleared.
         void supabase.auth.signOut();
         navigate('/login');
       }, 2000);
