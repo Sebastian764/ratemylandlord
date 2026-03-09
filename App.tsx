@@ -7,6 +7,7 @@ import { supabase } from './services/supabase';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import ContactPage from './pages/ContactPage';
+import TermsAndConditionsPage from './pages/TermsAndConditionsPage';
 import MainPage from './pages/MainPage';
 import LandlordPage from './pages/LandlordPage';
 import AddLandlordPage from './pages/AddLandlordPage';
@@ -111,6 +112,7 @@ function AppContent() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/resources" element={<ResourcesPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
