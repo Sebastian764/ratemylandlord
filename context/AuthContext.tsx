@@ -114,7 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setLoading(false);
           return { 
             success: false, 
-            error: 'Please verify your email address before logging in. Check your inbox for the verification link.',
+            error: 'There was an error. Please double check your credentials or verify your email address before logging in.',
             emailNotVerified: true 
           };
         }

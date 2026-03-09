@@ -175,6 +175,16 @@ const AddLandlordPage: React.FC = () => {
           onExpire={() => setTurnstileToken('')}
           onError={() => setTurnstileToken('')}
         />
+        <p className="text-sm text-gray-700 text-center">
+          By submitting a landlord and/or a review, you agree to our{' '}
+          <a
+            href="/terms-and-conditions"
+            rel="noopener noreferrer"
+            className="underline ml-1 font-semibold text-blue-700 hover:text-blue-800"
+          >
+            Terms and Conditions
+          </a>.
+        </p>
 
         <button 
           type="submit" 

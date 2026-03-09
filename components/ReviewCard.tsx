@@ -94,7 +94,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
             </span>
           ) : (
             <span className="inline-flex items-center px-3 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded-full border border-gray-200">
-              Unverified
+              Review Unverified
             </span>
           )}
         </div>
