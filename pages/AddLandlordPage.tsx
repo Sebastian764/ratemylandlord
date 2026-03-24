@@ -32,6 +32,11 @@ const AddLandlordPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
     if (!turnstileToken) {
       alert('Please complete the security verification.');
       return;
@@ -120,8 +125,7 @@ const AddLandlordPage: React.FC = () => {
       {!user && (
         <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
           <p className="text-sm text-yellow-800">
-            📝 You're submitting as a guest.
-            <a href="/login" className="underline ml-1 font-semibold">Log in</a> to edit your submissions later and upload verification.
+            Please <a href="/login" className="underline ml-1 font-semibold">Log in</a> to add a landlord.
           </p>
         </div>
       )}
