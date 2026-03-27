@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import type { Landlord, Review } from '../types';
-import * as api from '../services/api';
-import { getVerificationFileUrl } from '../services/api';
+import { useApiService } from '../context/ServicesContext';
 
 const AdminPage: React.FC = () => {
+  const api = useApiService();
   const { isAdmin, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [pendingLandlords, setPendingLandlords] = useState<Landlord[]>([]);
@@ -45,7 +45,7 @@ const AdminPage: React.FC = () => {
   const handleDownloadVerificationFile = async (reviewId: number, filePath: string) => {
     setDownloadingFile(reviewId);
     try {
-      const signedUrl = await getVerificationFileUrl(filePath);
+      const signedUrl = await api.getVerificationFileUrl(filePath);
       
       // Open in new tab
       window.open(signedUrl, '_blank');

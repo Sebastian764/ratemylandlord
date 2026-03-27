@@ -5,12 +5,12 @@ import { useAuth } from '../context/AuthContext';
 import type { Landlord } from '../types';
 import ReviewForm from '../components/ReviewForm';
 import TurnstileWidget from '../components/TurnstileWidget';
-import { uploadVerificationFile } from '../services/api';
-import { supabase } from '../services/supabase';
+import { useApiService } from '../context/ServicesContext';
 import { TurnstileInstance } from '@marsidev/react-turnstile';
 import { isStudentEmail } from '../utils/studentVerification';
 
 const AddReviewPage: React.FC = () => {
+  const api = useApiService();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addReview, getLandlord, loading } = useData();
@@ -89,15 +89,8 @@ const AddReviewPage: React.FC = () => {
       // If there's a verification file, upload it
       if (verificationFile && user?.id) {
         try {
-          const filePath = await uploadVerificationFile(verificationFile, user.id, newReview.id);
-          
-          // Update the review with the file path
-          const { error: updateError } = await supabase
-            .from('reviews')
-            .update({ verification_file_url: filePath })
-            .eq('id', newReview.id);
-
-          if (updateError) throw updateError;
+          const filePath = await api.uploadVerificationFile(verificationFile, user.id, newReview.id);
+          await api.updateReview(newReview.id, { verification_file_url: filePath });
         } catch (uploadError) {
           console.error('Failed to upload verification file:', uploadError);
           alert(`Review submitted, but file upload failed: ${uploadError?.message || 'Unknown error'}. Your review will be marked as unverified.`);

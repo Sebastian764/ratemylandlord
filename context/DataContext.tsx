@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { Landlord, Review } from '../types';
-import * as api from '../services/api';
+import { useServices } from './ServicesContext';
 import { useAuth } from './AuthContext';
 
 interface DataContextType {
@@ -19,6 +19,7 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { api } = useServices();
   const [landlords, setLandlords] = useState<Landlord[]>([]);
   const [reviews, setReviews] = useState<{ [key: number]: Review[] }>({});
   const [loading, setLoading] = useState(true);
@@ -34,7 +35,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [api]);
 
   useEffect(() => {
     fetchLandlords();
@@ -43,15 +44,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const getLandlord = useCallback(async (id: number) => {
     setLoading(true);
     try {
-      const landlord = await api.getLandlordById(id);
-      return landlord;
+      return await api.getLandlordById(id);
     } catch (error) {
       console.error('Error fetching landlord:', error);
       return undefined;
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [api]);
 
   const getReviewsForLandlord = useCallback(async (id: number) => {
     if (reviews[id]) return reviews[id];
@@ -66,41 +66,45 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setLoading(false);
     }
-  }, [reviews, isAdmin]);
-  
-  const handleAddLandlord = async (landlordData: Omit<Landlord, 'id' | 'is_deleted' | 'created_at' | 'status'>, reviewData?: Omit<Review, 'id' | 'landlord_id' | 'is_deleted' | 'created_at' | 'updated_at' | 'verification_file_url'>) => {
-      const newLandlord = await api.addLandlord(landlordData, reviewData);
-      fetchLandlords();
-      return newLandlord;
+  }, [api, reviews, isAdmin]);
+
+  const handleAddLandlord = async (
+    landlordData: Omit<Landlord, 'id' | 'is_deleted' | 'created_at' | 'status'>,
+    reviewData?: Omit<Review, 'id' | 'landlord_id' | 'is_deleted' | 'created_at' | 'updated_at' | 'verification_file_url'>
+  ) => {
+    const newLandlord = await api.addLandlord(landlordData, reviewData);
+    fetchLandlords();
+    return newLandlord;
   };
 
-  const handleAddReview = async (reviewData: Omit<Review, 'id' | 'is_deleted' | 'created_at' | 'updated_at' | 'verification_file_url'>) => {
-      const newReview = await api.addReview(reviewData);
-      // Invalidate cache for this landlord
-      setReviews(prev => {
-          const newReviews = {...prev};
-          delete newReviews[reviewData.landlord_id];
-          return newReviews;
-      });
-      return newReview;
+  const handleAddReview = async (
+    reviewData: Omit<Review, 'id' | 'is_deleted' | 'created_at' | 'updated_at' | 'verification_file_url'>
+  ) => {
+    const newReview = await api.addReview(reviewData);
+    setReviews(prev => {
+      const next = { ...prev };
+      delete next[reviewData.landlord_id];
+      return next;
+    });
+    return newReview;
   };
 
   const handleDeleteReview = async (reviewId: number, landlordId: number) => {
-      await api.deleteReview(reviewId);
-      setReviews(prev => {
-          const newReviews = {...prev};
-          delete newReviews[landlordId];
-          return newReviews;
-      });
+    await api.deleteReview(reviewId);
+    setReviews(prev => {
+      const next = { ...prev };
+      delete next[landlordId];
+      return next;
+    });
   };
 
   const handleRestoreReview = async (reviewId: number, landlordId: number) => {
-      await api.restoreReview(reviewId);
-      setReviews(prev => {
-          const newReviews = {...prev};
-          delete newReviews[landlordId];
-          return newReviews;
-      });
+    await api.restoreReview(reviewId);
+    setReviews(prev => {
+      const next = { ...prev };
+      delete next[landlordId];
+      return next;
+    });
   };
 
   const value = {
@@ -113,14 +117,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     deleteReview: handleDeleteReview,
     restoreReview: handleRestoreReview,
     loading: loading || authLoading,
-    refreshLandlords: fetchLandlords
+    refreshLandlords: fetchLandlords,
   };
 
-  return (
-    <DataContext.Provider value={value}>
-      {children}
-    </DataContext.Provider>
-  );
+  return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 };
 
 export const useData = () => {

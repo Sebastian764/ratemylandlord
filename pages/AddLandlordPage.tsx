@@ -4,8 +4,7 @@ import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import ReviewForm from '../components/ReviewForm';
 import TurnstileWidget from '../components/TurnstileWidget';
-import { uploadVerificationFile } from '../services/api';
-import { supabase } from '../services/supabase';
+import { useApiService } from '../context/ServicesContext';
 import { TurnstileInstance } from '@marsidev/react-turnstile';
 
 const AddLandlordPage: React.FC = () => {
@@ -25,13 +24,19 @@ const AddLandlordPage: React.FC = () => {
   const [turnstileToken, setTurnstileToken] = useState<string>('');
   const turnstileRef = useRef<TurnstileInstance>(null);
 
+  const api = useApiService();
   const { addLandlord: apiAddLandlord } = useData();
   const { user } = useAuth();
   const navigate = useNavigate();
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
     if (!turnstileToken) {
       alert('Please complete the security verification.');
       return;
@@ -73,24 +78,10 @@ const AddLandlordPage: React.FC = () => {
       // If there's a verification file and a review was added, upload it
       if (verificationFile && reviewData && user?.id) {
         try {
-          // Get the review that was just created
-          const { data: reviews } = await supabase
-            .from('reviews')
-            .select('id')
-            .eq('landlord_id', newLandlord.id)
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false })
-            .limit(1);
-
-          if (reviews && reviews.length > 0) {
-            const reviewId = reviews[0].id;
-            const filePath = await uploadVerificationFile(verificationFile, user.id, reviewId);
-            
-            // Update the review with the file path
-            await supabase
-              .from('reviews')
-              .update({ verification_file_url: filePath })
-              .eq('id', reviewId);
+          const latestReview = await api.getLatestReviewForLandlordByUser(newLandlord.id, user.id);
+          if (latestReview) {
+            const filePath = await api.uploadVerificationFile(verificationFile, user.id, latestReview.id);
+            await api.updateReview(latestReview.id, { verification_file_url: filePath });
           }
         } catch (uploadError) {
           console.error('Failed to upload verification file:', uploadError);
@@ -120,8 +111,7 @@ const AddLandlordPage: React.FC = () => {
       {!user && (
         <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
           <p className="text-sm text-yellow-800">
-            📝 You're submitting as a guest. 
-            <a href="/login" className="underline ml-1 font-semibold">Log in</a> to edit your submissions later and upload verification.
+            Please <a href="/login" className="underline ml-1 font-semibold">Log in</a> to add a landlord.
           </p>
         </div>
       )}

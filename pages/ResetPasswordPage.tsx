@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../services/supabase';
 
 const ResetPasswordPage: React.FC = () => {
   const [password, setPassword] = useState('');
@@ -11,7 +10,7 @@ const ResetPasswordPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [isValidRecovery, setIsValidRecovery] = useState(false);
   const [checkingRecovery, setCheckingRecovery] = useState(true);
-  const { updatePassword } = useAuth();
+  const { updatePassword, logout, verifyOtp } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,13 +35,10 @@ const ResetPasswordPage: React.FC = () => {
       }
 
       try {
-        const { error: otpError } = await supabase.auth.verifyOtp({
-          token_hash: tokenHash,
-          type: 'recovery',
-        });
+        const { error: otpErrorMsg } = await verifyOtp({ tokenHash, type: 'recovery' });
 
-        if (otpError) {
-          if (otpError.message.toLowerCase().includes('expired')) {
+        if (otpErrorMsg) {
+          if (otpErrorMsg.toLowerCase().includes('expired')) {
             setError('The password reset link has expired. Please request a new one from the login page.');
           } else {
             setError('Invalid or expired password reset link. Please request a new one.');
@@ -91,7 +87,7 @@ const ResetPasswordPage: React.FC = () => {
       setMessage('Password updated successfully! Redirecting to login...');
       setTimeout(() => {
         // Sign out to ensure any temporary recovery session is fully cleared.
-        void supabase.auth.signOut();
+        void logout();
         navigate('/login');
       }, 2000);
     } else {

@@ -4,10 +4,10 @@ import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import type { Review } from '../types';
 import ReviewForm from '../components/ReviewForm';
-import { supabase } from '../services/supabase';
-import { uploadVerificationFile, deleteVerificationFile } from '../services/api';
+import { useApiService } from '../context/ServicesContext';
 
 const EditReviewPage: React.FC = () => {
+  const api = useApiService();
   const { id, reviewId } = useParams<{ id: string; reviewId: string }>();
   const navigate = useNavigate();
   const { getLandlord, loading } = useData();
@@ -31,14 +31,9 @@ const EditReviewPage: React.FC = () => {
 
   useEffect(() => {
     const fetchReviewAndLandlord = async () => {
-      // Fetch review
-      const { data: reviewData, error } = await supabase
-        .from('reviews')
-        .select('*')
-        .eq('id', reviewIdNum)
-        .single();
+      const reviewData = await api.getReviewById(reviewIdNum);
 
-      if (error || !reviewData) {
+      if (!reviewData) {
         alert('Unable to load review. It may have been deleted or you may not have permission to view it.');
         navigate(`/landlord/${landlordId}`);
         return;
@@ -96,37 +91,31 @@ const EditReviewPage: React.FC = () => {
         // Delete old file if it exists
         if (review?.verification_file_url) {
           try {
-            await deleteVerificationFile(review.verification_file_url);
+            await api.deleteVerificationFile(review.verification_file_url);
           } catch (err) {
             console.error('Failed to delete old verification file:', err);
           }
         }
 
         // Upload new file
-        const filePath = await uploadVerificationFile(verificationFile, user.id, reviewIdNum);
+        const filePath = await api.uploadVerificationFile(verificationFile, user.id, reviewIdNum);
         newVerificationFileUrl = filePath;
         newVerificationStatus = 'pending';
       }
 
       // Note: created_by_student is NOT updated during edit - it's set once at creation
-      const { error } = await supabase
-        .from('reviews')
-        .update({
-          rating,
-          communication,
-          maintenance,
-          respect,
-          comment,
-          would_rent_again: wouldRentAgain,
-          rent_amount: rentAmount ? parseFloat(rentAmount) : null,
-          property_address: propertyAddress || null,
-          verification_status: newVerificationStatus,
-          verification_file_url: newVerificationFileUrl,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', reviewIdNum);
-
-      if (error) throw error;
+      await api.updateReview(reviewIdNum, {
+        rating,
+        communication,
+        maintenance,
+        respect,
+        comment,
+        would_rent_again: wouldRentAgain,
+        rent_amount: rentAmount ? parseFloat(rentAmount) : null,
+        property_address: propertyAddress || null,
+        verification_status: newVerificationStatus,
+        verification_file_url: newVerificationFileUrl,
+      });
 
       alert('Review updated successfully!');
       navigate(`/landlord/${landlordId}`);
