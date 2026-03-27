@@ -11,7 +11,7 @@ const EditReviewPage: React.FC = () => {
   const { id, reviewId } = useParams<{ id: string; reviewId: string }>();
   const navigate = useNavigate();
   const { getLandlord, loading } = useData();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   const [review, setReview] = useState<Review | null>(null);
   const [landlordName, setLandlordName] = useState('');
@@ -30,6 +30,7 @@ const EditReviewPage: React.FC = () => {
   const reviewIdNum = Number(reviewId);
 
   useEffect(() => {
+    if (authLoading) return; // Wait for auth to resolve before checking ownership
     const fetchReviewAndLandlord = async () => {
       const reviewData = await api.getReviewById(reviewIdNum);
 
@@ -65,7 +66,7 @@ const EditReviewPage: React.FC = () => {
     };
 
     fetchReviewAndLandlord();
-  }, [reviewIdNum, landlordId, user, navigate, getLandlord]);
+  }, [reviewIdNum, landlordId, user, authLoading, navigate, getLandlord]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
