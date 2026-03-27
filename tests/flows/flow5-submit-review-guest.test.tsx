@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderPage } from '../utils/renderWithProviders';
+import { renderWithRoutes } from '../utils/renderWithProviders';
 import {
   createMockApiService,
   createMockAuthService,
@@ -28,11 +28,10 @@ describe('Flow 5: Submit Review (Guest)', () => {
 
     const { default: AddReviewPage } = await import('../../pages/AddReviewPage');
 
-    renderPage(<AddReviewPage />, {
-      api,
-      auth,
-      initialRoute: '/landlord/1/add-review',
-    });
+    renderWithRoutes(
+      [{ path: '/landlord/:id/add-review', element: <AddReviewPage /> }],
+      { api, auth, initialRoute: '/landlord/1/add-review' }
+    );
 
     // Wait for the page to load
     await screen.findByText('Test Landlord');
@@ -79,11 +78,10 @@ describe('Flow 5: Submit Review (Guest)', () => {
 
     const { default: AddReviewPage } = await import('../../pages/AddReviewPage');
 
-    renderPage(<AddReviewPage />, {
-      api,
-      auth,
-      initialRoute: '/landlord/1/add-review',
-    });
+    renderWithRoutes(
+      [{ path: '/landlord/:id/add-review', element: <AddReviewPage /> }],
+      { api, auth, initialRoute: '/landlord/1/add-review' }
+    );
 
     await screen.findByText('Test Landlord');
 

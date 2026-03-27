@@ -80,7 +80,7 @@ describe('Flow 8: Admin Landlords', () => {
     );
 
     // Admin page redirects non-admins to '/', so home page content should appear
-    await screen.findByText(/find your landlord/i);
+    await screen.findByRole('heading', { name: /find your landlord/i });
 
     // Admin portal should NOT be visible
     expect(screen.queryByText(/admin portal/i)).not.toBeInTheDocument();

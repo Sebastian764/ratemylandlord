@@ -48,7 +48,7 @@ describe('Flow 3: Login', () => {
     });
 
     // Should navigate to home page
-    await screen.findByText(/find your landlord/i);
+    await screen.findByRole('heading', { name: /find your landlord/i });
   });
 
   it('edge: auth.signIn returns emailNotVerified → error shown + "Resend Verification Email" button visible', async () => {

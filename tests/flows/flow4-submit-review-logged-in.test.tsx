@@ -1,8 +1,8 @@
 import React from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderPage } from '../utils/renderWithProviders';
+import { renderWithRoutes } from '../utils/renderWithProviders';
 import {
   createMockApiService,
   createLoggedInAuth,
@@ -29,11 +29,10 @@ describe('Flow 4: Submit Review (Logged In)', () => {
 
     const { default: AddReviewPage } = await import('../../pages/AddReviewPage');
 
-    renderPage(<AddReviewPage />, {
-      api,
-      auth,
-      initialRoute: '/landlord/1/add-review',
-    });
+    renderWithRoutes(
+      [{ path: '/landlord/:id/add-review', element: <AddReviewPage /> }],
+      { api, auth, initialRoute: '/landlord/1/add-review' }
+    );
 
     // Wait for landlord name to appear (page loaded)
     await screen.findByText('Test Landlord');
@@ -65,11 +64,10 @@ describe('Flow 4: Submit Review (Logged In)', () => {
 
     const { default: AddReviewPage } = await import('../../pages/AddReviewPage');
 
-    renderPage(<AddReviewPage />, {
-      api,
-      auth,
-      initialRoute: '/landlord/1/add-review',
-    });
+    renderWithRoutes(
+      [{ path: '/landlord/:id/add-review', element: <AddReviewPage /> }],
+      { api, auth, initialRoute: '/landlord/1/add-review' }
+    );
 
     // Wait for landlord name to appear
     await screen.findByText('Test Landlord');
@@ -77,8 +75,10 @@ describe('Flow 4: Submit Review (Logged In)', () => {
     // Complete captcha but do NOT fill in comment
     await user.click(screen.getByTestId('captcha-complete'));
 
-    // Click submit
-    await user.click(screen.getByRole('button', { name: /submit review/i }));
+    // Submit the form directly to bypass native HTML5 required-field validation,
+    // so the JS validation inside handleSubmit can run and show the alert.
+    const submitButton = screen.getByRole('button', { name: /submit review/i });
+    fireEvent.submit(submitButton.closest('form')!);
 
     await waitFor(() => {
       expect(window.alert).toHaveBeenCalledWith('Please add a comment to your review.');
