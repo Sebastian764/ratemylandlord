@@ -47,9 +47,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (sessionUser) {
         setUser(sessionUser);
-        setLoading(false);
         const adminStatus = await checkIsAdmin(sessionUser.email);
-        if (mounted) setIsAdmin(adminStatus);
+        if (mounted) {
+          setIsAdmin(adminStatus);
+          setLoading(false);
+        }
       } else {
         setLoading(false);
       }
