@@ -128,3 +128,7 @@ it('shows landlord list', async () => {
 npm run build    # outputs to dist/
 npm run preview  # serve the built output locally
 ```
+
+## Contribute:
+Note that the actual [website](https://rateyinzlandlord.com/) is on the ui-changes branch.
+To contribute, create a new branch and create a pull request with the main branch 
