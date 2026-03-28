@@ -1,6 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, useMemo } from 'react';
-import { supabase } from '../services/supabase';
-import { checkIsAdminUser } from '../services/api';
+import { useServices } from './ServicesContext';
 import type { User } from '../types';
 
 interface AuthContextType {
@@ -11,6 +10,10 @@ interface AuthContextType {
   logout: () => void;
   resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
   updatePassword: (password: string) => Promise<{ success: boolean; error?: string }>;
+  verifyOtp: (params: {
+    tokenHash: string;
+    type: 'recovery' | 'signup' | 'invite' | 'email' | 'email_change';
+  }) => Promise<{ error?: string }>;
   loading: boolean;
 }
 
@@ -20,69 +23,49 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const adminCache = new Map<string, { isAdmin: boolean; timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-// Helper function to check if user is admin
-const checkIsAdmin = async (email: string): Promise<boolean> => {
-  // Check cache first
-  const cached = adminCache.get(email);
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    return cached.isAdmin;
-  }
-
-  // Query database
-  const isAdmin = await checkIsAdminUser(email);
-
-  // Cache result
-  adminCache.set(email, { isAdmin, timestamp: Date.now() });
-
-  return isAdmin;
-};
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { auth } = useServices();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  const checkIsAdmin = async (email: string): Promise<boolean> => {
+    const cached = adminCache.get(email);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      return cached.isAdmin;
+    }
+    const result = await auth.checkIsAdmin(email);
+    adminCache.set(email, { isAdmin: result, timestamp: Date.now() });
+    return result;
+  };
+
   useEffect(() => {
     let mounted = true;
 
-    // Check active session on mount
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    auth.getSession().then(async (sessionUser) => {
       if (!mounted) return;
 
-      if (session?.user) {
-        const userData: User = {
-          id: session.user.id,
-          email: session.user.email!,
-        };
-        setUser(userData);
-        setLoading(false); // Set loading false BEFORE admin check
-
-        // Check admin status AFTER user is set
-        const adminStatus = await checkIsAdmin(session.user.email!);
-        if (mounted) setIsAdmin(adminStatus);
+      if (sessionUser) {
+        setUser(sessionUser);
+        const adminStatus = await checkIsAdmin(sessionUser.email);
+        if (mounted) {
+          setIsAdmin(adminStatus);
+          setLoading(false);
+        }
       } else {
         setLoading(false);
       }
     });
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { unsubscribe } = auth.onAuthStateChange(async (sessionUser) => {
       if (!mounted) return;
 
-      if (session?.user) {
-        const userData: User = {
-          id: session.user.id,
-          email: session.user.email!,
-        };
-        setUser(userData);
-
+      if (sessionUser) {
+        setUser(sessionUser);
         // TODO: try to remove this delay if possible
-        // Check admin after a small delay
         setTimeout(async () => {
           if (!mounted) return;
-          const adminStatus = await checkIsAdmin(session.user.email!);
+          const adminStatus = await checkIsAdmin(sessionUser.email);
           setIsAdmin(adminStatus);
         }, 100);
       } else {
@@ -94,142 +77,71 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      unsubscribe();
     };
-  }, []);
+  }, [auth]);
 
-  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string; emailNotVerified?: boolean }> => {
+  const login = async (
+    email: string,
+    password: string
+  ): Promise<{ success: boolean; error?: string; emailNotVerified?: boolean }> => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        // Only show resend verification for explicit unverified-email signals.
-        const message = error.message.toLowerCase();
-        const code = ((error as unknown as { code?: string }).code ?? '').toLowerCase();
-        const isUnverifiedEmail =
-          code === 'email_not_confirmed' ||
-          message.includes('email not confirmed') ||
-          message.includes('email confirmation');
-
-        if (isUnverifiedEmail) {
-          setLoading(false);
-          return { 
-            success: false, 
-            error: 'Your email is not verified yet. Please verify your email and try again.',
-            emailNotVerified: true 
-          };
-        }
-        setLoading(false);
-        return { success: false, error: 'Invalid email or password.' };
-      }
-
-      if (data.user) {
-        const userData: User = {
-          id: data.user.id,
-          email: data.user.email!,
-        };
-        setUser(userData);
-        const adminStatus = await checkIsAdmin(data.user.email!);
+      const result = await auth.signIn(email, password);
+      if (result.success && result.user) {
+        setUser(result.user);
+        const adminStatus = await checkIsAdmin(result.user.email);
         setIsAdmin(adminStatus);
-        setLoading(false);
-        return { success: true };
       }
-
-      setLoading(false);
-      return { success: false, error: 'Invalid email or password.' };
+      return result;
     } catch (error) {
       console.error('Login error:', error);
-      setLoading(false);
       return { success: false, error: 'An error occurred during login.' };
+    } finally {
+      setLoading(false);
     }
   };
 
   const register = async (email: string, password: string): Promise<boolean> => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        // TODO: Remove emailRedirectTo — no longer used since custom Supabase email templates now build token_hash links directly to our domain.
-        options: {
-          emailRedirectTo: `${globalThis.location.origin}/verify-email`,
-        },
+      const result = await auth.signUp(email, password, {
+        redirectTo: `${globalThis.location.origin}/verify-email`,
       });
-
-      if (error) throw error;
-
-      if (data.user) {
-        // Do not set user here to prevent auto-login.
-        // The user must verify their email first.
-        setLoading(false);
-        return true;
-      }
-
-      setLoading(false);
-      return false;
+      if (result.error) throw new Error(result.error);
+      return result.success;
     } catch (error) {
-      setLoading(false);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
+    await auth.signOut();
+    if (user?.email) adminCache.delete(user.email);
     setUser(null);
     setIsAdmin(false);
-    // Clear admin cache on logout
-    if (user?.email) {
-      adminCache.delete(user.email);
-    }
   };
 
-  const resetPassword = async (email: string): Promise<{ success: boolean; error?: string }> => {
-    try {
-      // TODO: Remove redirectTo — no longer used since custom Supabase email templates now build token_hash links directly to our domain.
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${globalThis.location.origin}/reset-password`,
-      });
+  const resetPassword = async (email: string) =>
+    auth.resetPassword(email, {
+      redirectTo: `${globalThis.location.origin}/reset-password`,
+    });
 
-      if (error) {
-        return { success: false, error: error.message };
-      }
+  const updatePassword = async (password: string) => auth.updatePassword(password);
 
-      return { success: true };
-    } catch (error) {
-      console.error('Password reset error:', error);
-      return { success: false, error: 'An error occurred while sending the reset email.' };
-    }
-  };
-
-  const updatePassword = async (password: string): Promise<{ success: boolean; error?: string }> => {
-    try {
-      const { error } = await supabase.auth.updateUser({ password });
-
-      if (error) {
-        return { success: false, error: error.message };
-      }
-
-      return { success: true };
-    } catch (error) {
-      console.error('Update password error:', error);
-      return { success: false, error: 'An error occurred while updating the password.' };
-    }
-  };
+  const verifyOtp = async (params: {
+    tokenHash: string;
+    type: 'recovery' | 'signup' | 'invite' | 'email' | 'email_change';
+  }) => auth.verifyOtp(params);
 
   const value = useMemo(
-    () => ({ user, isAdmin, login, register, logout, resetPassword, updatePassword, loading }),
-    [user, isAdmin, loading]
+    () => ({ user, isAdmin, login, register, logout, resetPassword, updatePassword, verifyOtp, loading }),
+    [user, isAdmin, loading, auth]
   );
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {

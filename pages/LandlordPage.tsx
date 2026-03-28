@@ -5,9 +5,10 @@ import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import type { Landlord, Review } from '../types';
 import ReviewCard from '../components/ReviewCard';
-import { updateLandlordAddresses } from '../services/api';
+import { useApiService } from '../context/ServicesContext';
 
 const LandlordPage: React.FC = () => {
+  const api = useApiService();
   const { id } = useParams<{ id: string }>();
   const { getLandlord, getReviewsForLandlord, loading } = useData();
   const { isAdmin } = useAuth();
@@ -35,7 +36,7 @@ const LandlordPage: React.FC = () => {
     setIsSaving(true);
     try {
       const updatedAddresses = [...(landlord.addresses || []), newAddress.trim()];
-      await updateLandlordAddresses(landlord.id, updatedAddresses);
+      await api.updateLandlordAddresses(landlord.id, updatedAddresses);
       setLandlord({ ...landlord, addresses: updatedAddresses });
       setNewAddress('');
     } catch (error) {
@@ -52,7 +53,7 @@ const LandlordPage: React.FC = () => {
     setIsSaving(true);
     try {
       const updatedAddresses = (landlord.addresses || []).filter(addr => addr !== addressToRemove);
-      await updateLandlordAddresses(landlord.id, updatedAddresses);
+      await api.updateLandlordAddresses(landlord.id, updatedAddresses);
       setLandlord({ ...landlord, addresses: updatedAddresses });
     } catch (error) {
       console.error('Error removing address:', error);

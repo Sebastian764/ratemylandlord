@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ServicesProvider } from './context/ServicesContext';
 import { AuthProvider } from './context/AuthContext';
 import { DataProvider } from './context/DataContext';
 import Header from './components/Header';
@@ -19,11 +20,24 @@ import ResourcesPage from './pages/ResourcesPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
+import { isMockMode, supabase } from './services/supabase';
+import { SupabaseApiService } from './services/SupabaseApiService';
+import { SupabaseAuthService } from './services/SupabaseAuthService';
+import { MockApiService } from './services/MockApiService';
+import { MockAuthService } from './services/MockAuthService';
+
+const apiService = isMockMode ? new MockApiService() : new SupabaseApiService(supabase!);
+const authService = isMockMode ? new MockAuthService() : new SupabaseAuthService(supabase!);
 
 function AppContent() {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 text-gray-900 font-sans">
       <Header />
+      {isMockMode && (
+        <div className="bg-yellow-100 border-b border-yellow-300 text-yellow-800 text-sm text-center py-2 px-4">
+          Demo mode — showing fake data. Set <code className="font-mono bg-yellow-200 px-1 rounded">VITE_SUPABASE_URL</code> and <code className="font-mono bg-yellow-200 px-1 rounded">VITE_SUPABASE_ANON_KEY</code> in your <code className="font-mono bg-yellow-200 px-1 rounded">.env.local</code> to connect to a real database.
+        </div>
+      )}
       <main className="flex-1 w-full">
         <Routes>
           <Route path="/" element={<MainPage />} />
@@ -49,13 +63,15 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <DataProvider>
-        <BrowserRouter>
-          <AppContent />
-        </BrowserRouter>
-      </DataProvider>
-    </AuthProvider>
+    <ServicesProvider api={apiService} auth={authService}>
+      <AuthProvider>
+        <DataProvider>
+          <BrowserRouter>
+            <AppContent />
+          </BrowserRouter>
+        </DataProvider>
+      </AuthProvider>
+    </ServicesProvider>
   );
 }
 

@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../services/supabase';
+import { useAuth } from '../context/AuthContext';
 
 const VerifyEmailPage: React.FC = () => {
+  const { verifyOtp } = useAuth();
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const navigate = useNavigate();
@@ -48,17 +49,14 @@ const VerifyEmailPage: React.FC = () => {
         let lastErrorMessage = 'Email verification failed.';
 
         for (const otpType of candidateTypes) {
-          const { error } = await supabase.auth.verifyOtp({
-            token_hash: tokenHash,
-            type: otpType,
-          });
+          const { error } = await verifyOtp({ tokenHash, type: otpType });
 
           if (!error) {
             handleSuccess();
             return;
           }
 
-          lastErrorMessage = error.message || lastErrorMessage;
+          lastErrorMessage = error || lastErrorMessage;
 
           // If token is expired/used, no point trying more types.
           if (lastErrorMessage.toLowerCase().includes('expired') || lastErrorMessage.toLowerCase().includes('already')) {
