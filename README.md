@@ -52,7 +52,6 @@ init.sql              # Database schema
    ```
    VITE_SUPABASE_URL=https://<your-project>.supabase.co
    VITE_SUPABASE_ANON_KEY=<your-anon-key>
-   GEMINI_API_KEY=<your-gemini-key>
    ```
 
 3. Start the dev server (runs on port 3000):
@@ -64,13 +63,13 @@ init.sql              # Database schema
 
 ## Database
 
-The full schema is in `init.sql`. Run it against your Supabase project to set up all tables, RLS policies, and storage buckets.
+An reference is contained in `init.sql`
 
 ## Service Layer
 
 All backend calls go through two interfaces: `IApiService` and `IAuthService` (see `services/interfaces.ts`). The app selects the real Supabase implementations or the mock implementations at startup based on `isMockMode`.
 
-This pattern also makes testing straightforward — tests inject mock services directly rather than mocking fetch/Supabase internals.
+Tests also use dependency injection to mock services directly rather than mocking fetch/Supabase internals.
 
 ## Testing
 
