@@ -10,6 +10,7 @@ import {
   TEST_REVIEW,
   TEST_USER,
 } from '../utils/createMockServices';
+import { getCommentField, getSubmitReviewButton } from '../utils/queryHelpers';
 
 vi.mock('../../components/TurnstileWidget');
 
@@ -41,11 +42,11 @@ describe('Flow 4: Submit Review (Logged In)', () => {
     await user.click(screen.getByTestId('captcha-complete'));
 
     // Fill in the comment
-    const commentBox = screen.getByLabelText(/comment/i);
+    const commentBox = getCommentField();
     await user.type(commentBox, 'This is a great landlord who fixed things quickly.');
 
     // Submit
-    await user.click(screen.getByRole('button', { name: /submit review/i }));
+    await user.click(getSubmitReviewButton());
 
     await waitFor(() => {
       expect(api.addReview).toHaveBeenCalled();
@@ -77,7 +78,7 @@ describe('Flow 4: Submit Review (Logged In)', () => {
 
     // Submit the form directly to bypass native HTML5 required-field validation,
     // so the JS validation inside handleSubmit can run and show the alert.
-    const submitButton = screen.getByRole('button', { name: /submit review/i });
+    const submitButton = getSubmitReviewButton();
     fireEvent.submit(submitButton.closest('form')!);
 
     await waitFor(() => {

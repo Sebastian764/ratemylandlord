@@ -11,6 +11,7 @@ import {
   TEST_REVIEW,
 } from '../utils/createMockServices';
 import type { Review } from '../../types';
+import { getDeleteButton, getRestoreButton } from '../utils/queryHelpers';
 
 vi.mock('../../components/TurnstileWidget');
 
@@ -47,7 +48,7 @@ describe('Flow 10: Admin Delete/Restore Reviews', () => {
     await screen.findByText('Great landlord overall.');
 
     // Delete button should be visible for admin
-    const deleteButton = screen.getByRole('button', { name: /delete/i });
+    const deleteButton = getDeleteButton();
     expect(deleteButton).toBeInTheDocument();
 
     // Click delete
@@ -82,7 +83,7 @@ describe('Flow 10: Admin Delete/Restore Reviews', () => {
     await screen.findByText('This review was deleted.');
 
     // Restore button should be visible for admin on deleted review
-    const restoreButton = screen.getByRole('button', { name: /restore/i });
+    const restoreButton = getRestoreButton();
     expect(restoreButton).toBeInTheDocument();
 
     // Click restore

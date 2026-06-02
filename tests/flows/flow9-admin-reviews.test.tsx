@@ -10,6 +10,11 @@ import {
   TEST_REVIEW,
 } from '../utils/createMockServices';
 import type { Review } from '../../types';
+import {
+  getPendingReviewsTab,
+  getAllApproveButtons,
+  getAllRejectButtons,
+} from '../utils/queryHelpers';
 
 vi.mock('../../components/TurnstileWidget');
 
@@ -46,13 +51,13 @@ describe('Flow 9: Admin Reviews', () => {
     await screen.findByText(/admin portal/i);
 
     // Click the "Pending Reviews" tab
-    await user.click(screen.getByRole('button', { name: /pending reviews/i }));
+    await user.click(getPendingReviewsTab());
 
     // Pending review comment should be visible
     await screen.findByText(/pending review comment here/i);
 
     // Click Approve
-    const approveButtons = screen.getAllByRole('button', { name: /approve/i });
+    const approveButtons = getAllApproveButtons();
     await user.click(approveButtons[0]);
 
     // window.confirm should be called
@@ -84,13 +89,13 @@ describe('Flow 9: Admin Reviews', () => {
     await screen.findByText(/admin portal/i);
 
     // Click the "Pending Reviews" tab
-    await user.click(screen.getByRole('button', { name: /pending reviews/i }));
+    await user.click(getPendingReviewsTab());
 
     // Pending review comment should be visible
     await screen.findByText(/pending review comment here/i);
 
     // Click Reject
-    const rejectButtons = screen.getAllByRole('button', { name: /reject/i });
+    const rejectButtons = getAllRejectButtons();
     await user.click(rejectButtons[0]);
 
     // window.confirm should be called
