@@ -86,10 +86,11 @@ export function isValidStateCode(code: string): boolean {
 export const MAX_CITY_NAME_LENGTH = 85; // longest real US place name (~45) with comfortable headroom
 
 // Allowed city characters: letters (incl. accented via \p{L}), marks (é etc.),
-// spaces, apostrophes (straight + curly), hyphens, and periods. Must start and
-// end with a letter. Covers "St. Louis", "Winston-Salem", "O'Fallon",
-// "Coeur d'Alene", "Española", "Lake in the Hills".
-const CITY_NAME_REGEX = /^\p{L}[\p{L}\p{M} '’.\-]*\p{L}$/u;
+// spaces, apostrophes (straight + curly), hyphens, and periods. Must start with
+// a letter and (if longer than one character) end with a letter, so trailing
+// punctuation/space is rejected while single-letter names (e.g. "Y, AK") pass.
+// Covers "St. Louis", "Winston-Salem", "O'Fallon", "Coeur d'Alene", "Española".
+const CITY_NAME_REGEX = /^\p{L}([\p{L}\p{M} '’.\-]*\p{L})?$/u;
 
 /** Collapse whitespace, trim, normalize unicode and curly apostrophes. */
 export function cleanCityName(raw: string): string {

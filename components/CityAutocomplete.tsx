@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 interface CityAutocompleteProps {
   /** Currently selected value ('' when nothing is selected). */
@@ -44,12 +45,34 @@ const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
   const [query, setQuery] = useState(value);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [menuRect, setMenuRect] = useState<{ top: number; left: number; width: number } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Keep the visible text in sync when the value changes from outside.
   useEffect(() => {
     setQuery(value);
   }, [value]);
+
+  // The suggestions list is rendered in a portal anchored to the input's
+  // position. This keeps it visible even when an ancestor uses `overflow-hidden`
+  // or creates a stacking context (e.g. the search hero), instead of being
+  // clipped or painted underneath other content.
+  useLayoutEffect(() => {
+    if (!open) return;
+    const updateRect = () => {
+      const el = inputRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      setMenuRect({ top: r.bottom, left: r.left, width: r.width });
+    };
+    updateRect();
+    window.addEventListener('scroll', updateRect, true);
+    window.addEventListener('resize', updateRect);
+    return () => {
+      window.removeEventListener('scroll', updateRect, true);
+      window.removeEventListener('resize', updateRect);
+    };
+  }, [open]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -142,31 +165,40 @@ const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
         </button>
       )}
 
-      {open && filtered.length > 0 && (
-        <ul
-          role="listbox"
-          className="absolute z-20 mt-1 w-full max-h-60 overflow-auto rounded-xl bg-white py-1 text-left text-base text-gray-800 shadow-xl border border-gray-100"
-        >
-          {filtered.map((city, index) => (
-            <li
-              key={city}
-              role="option"
-              aria-selected={city === value}
-              // mousedown (not click) so the input keeps focus and doesn't blur-revert.
-              onMouseDown={(e) => {
-                e.preventDefault();
-                commit(city);
-              }}
-              onMouseEnter={() => setActiveIndex(index)}
-              className={`cursor-pointer px-4 py-2 ${
-                index === activeIndex ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50'
-              } ${city === value ? 'font-semibold' : ''}`}
-            >
-              {city}
-            </li>
-          ))}
-        </ul>
-      )}
+      {open && filtered.length > 0 && menuRect &&
+        createPortal(
+          <ul
+            role="listbox"
+            style={{
+              position: 'fixed',
+              top: menuRect.top + 4,
+              left: menuRect.left,
+              width: menuRect.width,
+              zIndex: 1000,
+            }}
+            className="max-h-60 overflow-auto rounded-xl bg-white py-1 text-left text-base text-gray-800 shadow-xl border border-gray-100"
+          >
+            {filtered.map((city, index) => (
+              <li
+                key={city}
+                role="option"
+                aria-selected={city === value}
+                // mousedown (not click) so the input keeps focus and doesn't blur-revert.
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  commit(city);
+                }}
+                onMouseEnter={() => setActiveIndex(index)}
+                className={`cursor-pointer px-4 py-2 ${
+                  index === activeIndex ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50'
+                } ${city === value ? 'font-semibold' : ''}`}
+              >
+                {city}
+              </li>
+            ))}
+          </ul>,
+          document.body
+        )}
     </div>
   );
 };

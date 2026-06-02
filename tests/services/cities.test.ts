@@ -31,7 +31,13 @@ describe('buildCity', () => {
     expect(buildCity('', 'TX')).toBeNull();
     expect(buildCity('   ', 'TX')).toBeNull();
     expect(buildCity('123 Fake', 'TX')).toBeNull(); // starts with a digit
+    expect(buildCity('Austin5', 'TX')).toBeNull(); // contains a digit
+    expect(buildCity('Austin-', 'TX')).toBeNull(); // trailing punctuation
     expect(buildCity('A'.repeat(200), 'TX')).toBeNull();
+  });
+
+  it('accepts single-letter place names (e.g. "Y, AK")', () => {
+    expect(buildCity('Y', 'AK')?.display).toBe('Y, AK');
   });
 
   it('rejects invalid state codes', () => {

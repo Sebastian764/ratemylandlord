@@ -68,7 +68,7 @@ const MainPage: React.FC = () => {
                 />
               </div>
 
-              {/* City filter — searchable, restricted to the supported list */}
+              {/* City filter — searchable over the dynamically-tracked set of cities */}
               <div className="flex items-center border-t md:border-t-0 md:border-l border-gray-200 md:pl-2">
                 <div className="pl-4 md:pl-2 text-gray-400">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
