@@ -4,23 +4,31 @@ import { useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import LandlordCard from '../components/LandlordCard';
+import CityAutocomplete from '../components/CityAutocomplete';
 import type { Landlord } from '../types';
+import { getLandlordCities, landlordHasCity } from '../utils/landlord';
 
 const MainPage: React.FC = () => {
-  const { landlords, loading } = useData();
+  const { landlords, cities, loading } = useData();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [cityFilter, setCityFilter] = useState('');
 
   const filteredLandlords = useMemo(() => {
-    if (!searchTerm) {
-      return landlords;
-    }
-    return landlords.filter(landlord =>
-      landlord.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      landlord.address?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm, landlords]);
+    const term = searchTerm.trim().toLowerCase();
+    return landlords.filter(landlord => {
+      const matchesTerm =
+        !term ||
+        landlord.name.toLowerCase().includes(term) ||
+        (landlord.addresses ?? []).some(addr => addr.toLowerCase().includes(term)) ||
+        getLandlordCities(landlord).some(city => city.toLowerCase().includes(term));
+
+      const matchesCity = !cityFilter || landlordHasCity(landlord, cityFilter);
+
+      return matchesTerm && matchesCity;
+    });
+  }, [searchTerm, cityFilter, landlords]);
 
   const handleAddLandlordClick = () => {
     if (user) {
@@ -40,29 +48,46 @@ const MainPage: React.FC = () => {
             Find Your Landlord
           </h1>
           <p className="text-xl md:text-2xl text-blue-100 mb-10 max-w-2xl mx-auto animate-slide-up">
-            Search for landlords in Pittsburgh and read reviews from previous tenants.
+            Search for landlords by name or city and read reviews from previous tenants.
           </p>
 
-          <div className="max-w-2xl mx-auto relative animate-slide-up" style={{ animationDelay: '0.1s' }}>
-            <div className="flex items-center bg-white rounded-full shadow-2xl p-2 transition-transform focus-within:scale-105 duration-300">
-              <div className="pl-6 text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
+          <div className="max-w-3xl mx-auto relative animate-slide-up" style={{ animationDelay: '0.1s' }}>
+            <div className="flex flex-col md:flex-row items-stretch md:items-center bg-white rounded-3xl md:rounded-full shadow-2xl p-2 gap-2 md:gap-0 transition-transform focus-within:scale-105 duration-300">
+              <div className="flex items-center flex-1">
+                <div className="pl-6 text-gray-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search by landlord name or address..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full p-4 text-lg text-gray-800 bg-transparent border-none focus:ring-0 placeholder-gray-400"
+                />
               </div>
-              <input
-                type="text"
-                placeholder="Search by landlord name or address..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full p-4 text-lg text-gray-800 bg-transparent border-none focus:ring-0 placeholder-gray-400"
-              />
-              {/* <button
-                onClick={handleAddLandlordClick}
-                className="flex-shrink-0 px-8 py-3 text-lg font-bold text-white bg-blue-600 rounded-full hover:bg-blue-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-              >
-                Add Landlord
-              </button> */}
+
+              {/* City filter — searchable, restricted to the supported list */}
+              <div className="flex items-center border-t md:border-t-0 md:border-l border-gray-200 md:pl-2">
+                <div className="pl-4 md:pl-2 text-gray-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+                <div className="w-full md:w-56">
+                  <CityAutocomplete
+                    ariaLabel="Filter by city"
+                    value={cityFilter}
+                    onChange={setCityFilter}
+                    options={cities}
+                    placeholder="Any city"
+                    clearable
+                    inputClassName="w-full p-4 pr-9 text-lg text-gray-800 bg-transparent border-none focus:ring-0 placeholder-gray-400"
+                  />
+                </div>
+              </div>
             </div>
             <div className="mt-6 flex items-center justify-center gap-2 text-sm md:text-base animate-fade-in" style={{ animationDelay: '0.2s' }}>
               <span className="text-blue-200/80">Can't find your landlord?</span>
@@ -106,7 +131,11 @@ const MainPage: React.FC = () => {
               <div className="col-span-full text-center py-20 bg-white rounded-2xl border border-dashed border-gray-300">
                 <div className="text-6xl mb-4">🏠</div>
                 <h3 className="text-2xl font-bold text-gray-800 mb-2">No landlords found</h3>
-                <p className="text-gray-600 mb-6">We couldn't find any landlords matching "{searchTerm}"</p>
+                <p className="text-gray-600 mb-6">
+                  We couldn't find any landlords
+                  {searchTerm && <> matching "{searchTerm}"</>}
+                  {cityFilter && <> in {cityFilter}</>}
+                </p>
                 <button
                   onClick={handleAddLandlordClick}
                   className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"

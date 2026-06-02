@@ -23,7 +23,8 @@ export interface Landlord {
   id: number;
   name: string;
   addresses?: string[]; // Changed to array to match database
-  city: string;
+  city: string; // Primary city. Kept for backward-compat; prefer `cities` for full list.
+  cities?: string[]; // All cities where this landlord has properties (a landlord may span multiple cities). Falls back to [city] when absent. See getLandlordCities().
   status?: 'pending' | 'approved' | 'rejected'; // Added to match database
   is_deleted: boolean; // Changed to snake_case to match database
   created_at?: string; // Added to match database

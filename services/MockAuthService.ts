@@ -1,5 +1,18 @@
 import type { IAuthService } from './interfaces';
 
+/**
+ * Hard-coded demo account. This ONLY works in demo/mock mode, because
+ * MockAuthService is only ever instantiated when running without Supabase
+ * credentials (see App.tsx). It is surfaced on the login screen so anyone
+ * trying the demo can sign in. Never used against a real backend.
+ */
+export const DEMO_CREDENTIALS = {
+  email: 'demo@demo.com',
+  password: 'demo1234',
+};
+
+const DEMO_USER = { id: 'demo-user', email: DEMO_CREDENTIALS.email };
+
 export class MockAuthService implements IAuthService {
   async getSession() {
     return null;
@@ -9,8 +22,17 @@ export class MockAuthService implements IAuthService {
     return { unsubscribe: () => {} };
   }
 
-  async signIn(_email: string, _password: string) {
-    return { success: false, error: 'Authentication is not available in demo mode.' };
+  async signIn(email: string, password: string) {
+    if (
+      email.trim().toLowerCase() === DEMO_CREDENTIALS.email &&
+      password === DEMO_CREDENTIALS.password
+    ) {
+      return { success: true, user: DEMO_USER };
+    }
+    return {
+      success: false,
+      error: `Demo mode: sign in with ${DEMO_CREDENTIALS.email} / ${DEMO_CREDENTIALS.password}.`,
+    };
   }
 
   async signUp(_email: string, _password: string, _options: { redirectTo: string }) {

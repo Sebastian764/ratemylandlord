@@ -4,11 +4,15 @@ import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import ReviewForm from '../components/ReviewForm';
 import TurnstileWidget from '../components/TurnstileWidget';
+import CityStateSelector from '../components/CityStateSelector';
 import { useApiService } from '../context/ServicesContext';
 import { TurnstileInstance } from '@marsidev/react-turnstile';
+import { buildCity, reconcileCity } from '../utils/cities';
 
 const AddLandlordPage: React.FC = () => {
   const [name, setName] = useState('');
+  const [cityName, setCityName] = useState('');
+  const [stateCode, setStateCode] = useState('');
   const [address, setAddress] = useState('');
   const [addReview, setAddReview] = useState(false);
   const [rating, setRating] = useState(3);
@@ -25,7 +29,7 @@ const AddLandlordPage: React.FC = () => {
   const turnstileRef = useRef<TurnstileInstance>(null);
 
   const api = useApiService();
-  const { addLandlord: apiAddLandlord } = useData();
+  const { addLandlord: apiAddLandlord, cities } = useData();
   const { user } = useAuth();
   const navigate = useNavigate();
   
@@ -47,12 +51,26 @@ const AddLandlordPage: React.FC = () => {
       return;
     }
 
+    if (!stateCode) {
+      alert('Please select a state.');
+      return;
+    }
+
+    const canonicalCity = buildCity(cityName, stateCode);
+    if (!canonicalCity) {
+      alert('Please enter a valid city name.');
+      return;
+    }
+    // Reuse an existing spelling if this city is already tracked, otherwise it
+    // becomes a brand-new tracked city automatically.
+    const selectedCity = reconcileCity(canonicalCity, cities);
+
     setUploading(true);
 
-    const landlordData = { 
-      name, 
+    const landlordData = {
+      name,
       addresses: address ? [address] : undefined,
-      city: 'Pittsburgh' 
+      city: selectedCity
     };
     
     let reviewData;
@@ -119,6 +137,20 @@ const AddLandlordPage: React.FC = () => {
         <div>
           <label htmlFor="name" className={formLabelStyle}>Landlord/Company Name</label>
           <input type="text" id="name" value={name} onChange={e => setName(e.target.value)} className={formInputStyle} required />
+        </div>
+        <div>
+          <span className={formLabelStyle}>Location</span>
+          <CityStateSelector
+            cityName={cityName}
+            stateCode={stateCode}
+            onCityNameChange={setCityName}
+            onStateChange={setStateCode}
+            knownCities={cities}
+            inputClassName={formInputStyle}
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            Pick your state, then type your city — anywhere in the US works.
+          </p>
         </div>
         <div>
           <label htmlFor="address" className={formLabelStyle}>Property Address (Optional)</label>

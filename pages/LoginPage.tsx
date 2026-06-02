@@ -3,6 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import TurnstileWidget from '../components/TurnstileWidget';
 import { TurnstileInstance } from '@marsidev/react-turnstile';
+import { isMockMode } from '../services/env';
+import { DEMO_CREDENTIALS } from '../services/MockAuthService';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -100,6 +102,29 @@ const LoginPage: React.FC = () => {
     <div className="max-w-md mx-auto mt-20">
       <div className="bg-white p-8 rounded-lg shadow-lg">
         <h1 className="text-3xl font-bold mb-6 text-center">Login</h1>
+        {isMockMode && (
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md text-sm text-yellow-800">
+            <p className="font-semibold">Demo mode</p>
+            <p className="mt-1">
+              Sign in with the demo account:
+              <br />
+              Email: <code className="font-mono bg-yellow-100 px-1 rounded">{DEMO_CREDENTIALS.email}</code>
+              <br />
+              Password: <code className="font-mono bg-yellow-100 px-1 rounded">{DEMO_CREDENTIALS.password}</code>
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setEmail(DEMO_CREDENTIALS.email);
+                setPassword(DEMO_CREDENTIALS.password);
+                setError('');
+              }}
+              className="mt-2 font-semibold text-yellow-900 underline hover:text-yellow-950"
+            >
+              Use demo credentials
+            </button>
+          </div>
+        )}
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>

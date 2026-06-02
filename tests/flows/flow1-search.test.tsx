@@ -16,7 +16,7 @@ const LANDLORD_A: Landlord = {
   id: 1,
   name: 'Test Landlord',
   addresses: ['123 Test St'],
-  city: 'Pittsburgh',
+  city: 'Pittsburgh, PA',
   status: 'approved',
   is_deleted: false,
   created_at: '2024-01-01T00:00:00Z',
@@ -26,7 +26,29 @@ const LANDLORD_B: Landlord = {
   id: 2,
   name: 'Another Owner',
   addresses: ['456 Other Ave'],
-  city: 'Pittsburgh',
+  city: 'Pittsburgh, PA',
+  status: 'approved',
+  is_deleted: false,
+  created_at: '2024-01-01T00:00:00Z',
+};
+
+const LANDLORD_C: Landlord = {
+  id: 3,
+  name: 'Cleveland Owner',
+  addresses: ['1 Lake Ave'],
+  city: 'Cleveland, OH',
+  status: 'approved',
+  is_deleted: false,
+  created_at: '2024-01-01T00:00:00Z',
+};
+
+// Landlord with properties across multiple cities (Pittsburgh + Cleveland).
+const LANDLORD_MULTI: Landlord = {
+  id: 4,
+  name: 'Multi City Group',
+  addresses: ['10 First St (Pittsburgh)', '20 Second St (Cleveland)'],
+  city: 'Pittsburgh, PA',
+  cities: ['Pittsburgh, PA', 'Cleveland, OH'],
   status: 'approved',
   is_deleted: false,
   created_at: '2024-01-01T00:00:00Z',
@@ -78,6 +100,40 @@ describe('Flow 1: Search and Navigation', () => {
 
     // Should see landlord page with the name
     await screen.findByRole('heading', { name: /Test Landlord/i });
+  });
+
+  it('city filter: searching "Cleveland" shows the Cleveland landlord and a multi-city landlord, hides Pittsburgh-only ones', async () => {
+    const user = userEvent.setup();
+    const api = createMockApiService({
+      getLandlords: vi
+        .fn()
+        .mockResolvedValue([LANDLORD_A, LANDLORD_B, LANDLORD_C, LANDLORD_MULTI]),
+      getCities: vi.fn().mockResolvedValue(['Cleveland, OH', 'Pittsburgh, PA']),
+    });
+    const auth = createMockAuthService();
+
+    const { default: MainPage } = await import('../../pages/MainPage');
+
+    renderWithRoutes(
+      [{ path: '/', element: <MainPage /> }],
+      { api, auth, initialRoute: '/' }
+    );
+
+    await screen.findByText('Cleveland Owner');
+
+    // Type into the searchable city filter and pick from the list
+    const cityFilter = screen.getByLabelText('Filter by city');
+    await user.type(cityFilter, 'Cleve');
+    await user.click(await screen.findByRole('option', { name: 'Cleveland, OH' }));
+
+    await waitFor(() => {
+      // Cleveland landlord and the multi-city landlord remain
+      expect(screen.getByText('Cleveland Owner')).toBeInTheDocument();
+      expect(screen.getByText('Multi City Group')).toBeInTheDocument();
+      // Pittsburgh-only landlords are filtered out
+      expect(screen.queryByText('Test Landlord')).not.toBeInTheDocument();
+      expect(screen.queryByText('Another Owner')).not.toBeInTheDocument();
+    });
   });
 
   it('edge: type "zzzzz" → "No landlords found" text visible', async () => {

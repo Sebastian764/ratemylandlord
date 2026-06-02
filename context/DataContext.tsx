@@ -5,6 +5,7 @@ import { useAuth } from './AuthContext';
 
 interface DataContextType {
   landlords: Landlord[];
+  cities: string[];
   reviews: { [key: number]: Review[] };
   getLandlord: (id: number) => Promise<Landlord | undefined>;
   getReviewsForLandlord: (id: number) => Promise<Review[]>;
@@ -21,6 +22,7 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { api } = useServices();
   const [landlords, setLandlords] = useState<Landlord[]>([]);
+  const [cities, setCities] = useState<string[]>([]);
   const [reviews, setReviews] = useState<{ [key: number]: Review[] }>({});
   const [loading, setLoading] = useState(true);
   const { isAdmin, loading: authLoading } = useAuth();
@@ -37,9 +39,22 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [api]);
 
+  // The known-city set is fetched via its own lightweight endpoint (not derived
+  // from the full landlord list) so it scales independently of how many
+  // landlords exist.
+  const fetchCities = useCallback(async () => {
+    try {
+      const data = await api.getCities();
+      setCities(data);
+    } catch (error) {
+      console.error('Error fetching cities:', error);
+    }
+  }, [api]);
+
   useEffect(() => {
     fetchLandlords();
-  }, [fetchLandlords]);
+    fetchCities();
+  }, [fetchLandlords, fetchCities]);
 
   const getLandlord = useCallback(async (id: number) => {
     setLoading(true);
@@ -74,6 +89,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   ) => {
     const newLandlord = await api.addLandlord(landlordData, reviewData);
     fetchLandlords();
+    fetchCities(); // a brand-new city becomes part of the tracked set
     return newLandlord;
   };
 
@@ -109,6 +125,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const value = {
     landlords,
+    cities,
     reviews,
     getLandlord,
     getReviewsForLandlord,
@@ -118,6 +135,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     restoreReview: handleRestoreReview,
     loading: loading || authLoading,
     refreshLandlords: fetchLandlords,
+    refreshCities: fetchCities,
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

@@ -2,6 +2,7 @@
 import React from 'react';
 import type { Landlord } from '../types';
 import { Link } from 'react-router-dom';
+import { getLandlordCities } from '../utils/landlord';
 
 interface LandlordCardProps {
   landlord: Landlord;
@@ -35,7 +36,7 @@ const LandlordCard: React.FC<LandlordCardProps> = ({ landlord }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
             <span className="line-clamp-2">
-              {landlord.addresses && landlord.addresses.length > 0 ? `${landlord.addresses.join(', ')}, ` : ''}{landlord.city}
+              {landlord.addresses && landlord.addresses.length > 0 ? `${landlord.addresses.join(', ')}, ` : ''}{getLandlordCities(landlord).join(' · ')}
             </span>
           </div>
         </div>

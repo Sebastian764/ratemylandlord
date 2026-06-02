@@ -52,6 +52,7 @@ export function createMockAuthService(overrides?: Partial<IAuthService>): IAuthS
 export function createMockApiService(overrides?: Partial<IApiService>): IApiService {
   return {
     getLandlords: vi.fn().mockResolvedValue([]),
+    getCities: vi.fn().mockResolvedValue([]),
     getLandlordById: vi.fn().mockResolvedValue(undefined),
     getReviewsByLandlordId: vi.fn().mockResolvedValue([]),
     getReviewById: vi.fn().mockResolvedValue(undefined),

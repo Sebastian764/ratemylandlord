@@ -6,6 +6,12 @@ export type ReviewUpdate = Partial<
 
 export interface IApiService {
   getLandlords(): Promise<Landlord[]>;
+  /**
+   * Distinct, sorted list of canonical "City, ST" strings that currently have
+   * at least one landlord. This is the dynamically-tracked city set used to
+   * power search suggestions; it grows automatically as landlords are added.
+   */
+  getCities(): Promise<string[]>;
   getLandlordById(id: number): Promise<Landlord | undefined>;
   getReviewsByLandlordId(landlordId: number, includeDeleted?: boolean): Promise<Review[]>;
   getReviewById(reviewId: number): Promise<Review | undefined>;

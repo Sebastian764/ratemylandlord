@@ -52,6 +52,10 @@ describe('Flow 7: Add Landlord', () => {
     // Fill in landlord name
     await user.type(getLandlordNameField(), 'New Test Landlord');
 
+    // Pick a state (required) and type any city — anywhere in the US works
+    await user.selectOptions(screen.getByLabelText('State'), 'PA');
+    await user.type(screen.getByLabelText('City'), 'Pittsburgh');
+
     // Complete captcha
     await user.click(screen.getByTestId('captcha-complete'));
 

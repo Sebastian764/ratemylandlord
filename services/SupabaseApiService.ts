@@ -17,6 +17,35 @@ export class SupabaseApiService implements IApiService {
     return data || [];
   }
 
+  async getCities(): Promise<string[]> {
+    // Scalable path: call a DB function that returns the distinct set of cities
+    // rather than pulling every landlord to the client. See init.sql for the
+    // `get_cities()` definition (and the optional maintained lookup table for
+    // very large datasets).
+    const { data, error } = await this.client.rpc('get_cities');
+    if (!error && Array.isArray(data)) {
+      return (data as Array<{ city: string } | string>)
+        .map((row) => (typeof row === 'string' ? row : row.city))
+        .filter(Boolean);
+    }
+
+    // Fallback if the RPC isn't installed: derive distinct cities from approved
+    // landlords. Correct, just less efficient at scale.
+    const { data: rows, error: rowsError } = await this.client
+      .from('landlords')
+      .select('city, cities')
+      .eq('is_deleted', false)
+      .eq('status', 'approved');
+    if (rowsError) throw rowsError;
+
+    const set = new Set<string>();
+    for (const row of rows ?? []) {
+      const list = (row.cities && row.cities.length > 0 ? row.cities : [row.city]) as string[];
+      for (const c of list) if (c) set.add(c);
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }
+
   async getLandlordById(id: number): Promise<Landlord | undefined> {
     const { data, error } = await this.client
       .from('landlords')
