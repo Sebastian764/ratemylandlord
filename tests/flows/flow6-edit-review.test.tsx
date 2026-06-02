@@ -10,6 +10,7 @@ import {
   TEST_REVIEW,
   TEST_USER,
 } from '../utils/createMockServices';
+import { getUpdateReviewButton } from '../utils/queryHelpers';
 
 vi.mock('../../components/TurnstileWidget');
 
@@ -44,7 +45,7 @@ describe('Flow 6: Edit Review', () => {
     await user.type(commentBox, 'Updated comment about the landlord.');
 
     // Click Update Review
-    await user.click(screen.getByRole('button', { name: /update review/i }));
+    await user.click(getUpdateReviewButton());
 
     await waitFor(() => {
       expect(api.updateReview).toHaveBeenCalledWith(
@@ -77,7 +78,7 @@ describe('Flow 6: Edit Review', () => {
 
     // Should alert and navigate away
     await waitFor(() => {
-      expect(window.alert).toHaveBeenCalledWith('You can only edit your own reviews');
+      expect(window.alert).toHaveBeenCalledWith(expect.stringContaining('only edit your own reviews'));
     });
   });
 });

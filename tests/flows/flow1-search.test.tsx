@@ -8,6 +8,7 @@ import {
   createMockAuthService,
 } from '../utils/createMockServices';
 import type { Landlord } from '../../types';
+import { getSearchField, findNoLandlordsFoundText } from '../utils/queryHelpers';
 
 vi.mock('../../components/TurnstileWidget');
 
@@ -62,7 +63,7 @@ describe('Flow 1: Search and Navigation', () => {
     expect(screen.getByText('Another Owner')).toBeInTheDocument();
 
     // Type in search box
-    const searchInput = screen.getByPlaceholderText(/search by landlord name/i);
+    const searchInput = getSearchField();
     await user.type(searchInput, 'Test');
 
     // Only Test Landlord should remain
@@ -95,9 +96,9 @@ describe('Flow 1: Search and Navigation', () => {
 
     await screen.findByText('Test Landlord');
 
-    const searchInput = screen.getByPlaceholderText(/search by landlord name/i);
+    const searchInput = getSearchField();
     await user.type(searchInput, 'zzzzz');
 
-    await screen.findByText(/No landlords found/i);
+    await findNoLandlordsFoundText();
   });
 });

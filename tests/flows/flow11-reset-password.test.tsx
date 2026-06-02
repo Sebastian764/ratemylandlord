@@ -4,6 +4,12 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderPage } from '../utils/renderWithProviders';
 import { createMockApiService, createMockAuthService } from '../utils/createMockServices';
+import {
+  findResetPasswordHeading,
+  getNewPasswordField,
+  getConfirmPasswordField,
+  getUpdatePasswordButton,
+} from '../utils/queryHelpers';
 
 vi.mock('../../components/TurnstileWidget');
 
@@ -44,14 +50,14 @@ describe('Flow 11: Reset Password', () => {
     renderPage(<ResetPasswordPage />, { api, auth });
 
     // Wait for the form to appear (after OTP verification succeeds)
-    await screen.findByRole('heading', { name: /set new password/i });
+    await findResetPasswordHeading();
 
     // Fill new password
-    await user.type(screen.getByLabelText(/^new password$/i), 'newsecurepassword');
-    await user.type(screen.getByLabelText(/confirm new password/i), 'newsecurepassword');
+    await user.type(getNewPasswordField(), 'newsecurepassword');
+    await user.type(getConfirmPasswordField(), 'newsecurepassword');
 
     // Click Update Password
-    await user.click(screen.getByRole('button', { name: /update password/i }));
+    await user.click(getUpdatePasswordButton());
 
     await waitFor(() => {
       expect(auth.updatePassword).toHaveBeenCalledWith('newsecurepassword');
@@ -78,7 +84,7 @@ describe('Flow 11: Reset Password', () => {
     await screen.findByText(/the password reset link has expired/i);
 
     // Form should NOT be visible
-    expect(screen.queryByRole('heading', { name: /set new password/i })).not.toBeInTheDocument();
-    expect(screen.queryByLabelText(/^new password$/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /set new password|reset password/i })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/new password/i) || screen.queryByLabelText(/confirm/i) || document.querySelector('input[type="password"]')).not.toBeInTheDocument();
   });
 });

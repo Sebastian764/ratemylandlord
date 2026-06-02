@@ -4,6 +4,15 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithRoutes } from '../utils/renderWithProviders';
 import { createMockApiService, createMockAuthService, TEST_USER } from '../utils/createMockServices';
+import {
+  getEmailField,
+  getPasswordField,
+  getLoginButton,
+  findLoginHeading,
+  findHomeHeading,
+  findUnverifiedEmailText,
+  getResendEmailButton,
+} from '../utils/queryHelpers';
 
 vi.mock('../../components/TurnstileWidget');
 
@@ -35,12 +44,12 @@ describe('Flow 3: Login', () => {
     );
 
     // Wait for login page to appear
-    await screen.findByRole('heading', { name: /login/i });
+    await findLoginHeading();
 
-    await user.type(screen.getByLabelText(/email/i), 'test@pitt.edu');
-    await user.type(screen.getByLabelText(/password/i), 'mypassword');
+    await user.type(getEmailField(), 'test@pitt.edu');
+    await user.type(getPasswordField(), 'mypassword');
 
-    await user.click(screen.getByRole('button', { name: /^login$/i }));
+    await user.click(getLoginButton());
 
     // auth.signIn should be called with correct args
     await waitFor(() => {
@@ -48,7 +57,7 @@ describe('Flow 3: Login', () => {
     });
 
     // Should navigate to home page
-    await screen.findByRole('heading', { name: /find your landlord/i });
+    await findHomeHeading();
   });
 
   it('edge: auth.signIn returns emailNotVerified → error shown + "Resend Verification Email" button visible', async () => {
@@ -69,17 +78,17 @@ describe('Flow 3: Login', () => {
       { api, auth, initialRoute: '/login' }
     );
 
-    await screen.findByRole('heading', { name: /login/i });
+    await findLoginHeading();
 
-    await user.type(screen.getByLabelText(/email/i), 'unverified@pitt.edu');
-    await user.type(screen.getByLabelText(/password/i), 'mypassword');
+    await user.type(getEmailField(), 'unverified@pitt.edu');
+    await user.type(getPasswordField(), 'mypassword');
 
-    await user.click(screen.getByRole('button', { name: /^login$/i }));
+    await user.click(getLoginButton());
 
     // Should show error message
-    await screen.findByText(/your email is not verified/i);
+    await findUnverifiedEmailText();
 
     // Should show resend verification button
-    expect(screen.getByRole('button', { name: /resend verification email/i })).toBeInTheDocument();
+    expect(getResendEmailButton()).toBeInTheDocument();
   });
 });

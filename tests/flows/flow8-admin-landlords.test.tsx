@@ -11,6 +11,7 @@ import {
   TEST_LANDLORD,
 } from '../utils/createMockServices';
 import type { Landlord } from '../../types';
+import { getApproveButton, findHomeHeading } from '../utils/queryHelpers';
 
 vi.mock('../../components/TurnstileWidget');
 
@@ -47,7 +48,7 @@ describe('Flow 8: Admin Landlords', () => {
     await screen.findByText('Test Landlord');
 
     // Click Approve
-    await user.click(screen.getByRole('button', { name: /approve/i }));
+    await user.click(getApproveButton());
 
     // window.confirm should have been called
     expect(window.confirm).toHaveBeenCalled();
@@ -80,7 +81,7 @@ describe('Flow 8: Admin Landlords', () => {
     );
 
     // Admin page redirects non-admins to '/', so home page content should appear
-    await screen.findByRole('heading', { name: /find your landlord/i });
+    await findHomeHeading();
 
     // Admin portal should NOT be visible
     expect(screen.queryByText(/admin portal/i)).not.toBeInTheDocument();

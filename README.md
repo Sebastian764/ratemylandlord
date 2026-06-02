@@ -61,9 +61,13 @@ init.sql              # Database schema
 
 > **Demo / mock mode:** If `VITE_SUPABASE_URL` or `VITE_SUPABASE_ANON_KEY` are missing, the app automatically runs in mock mode using in-memory fake data. A yellow banner is shown at the top. This is useful for frontend-only development without a Supabase project.
 
-## Database
+## Documentation & Architecture
 
-An reference is contained in `init.sql`
+For comprehensive guides on the project, check the following resources:
+- [Replication & Setup Guide](file:///Ubuntu/home/sebas/coding/ratemylandlord/docs/replication_guide.md) — Step-by-step instructions to configure Supabase (Database, Auth, Storage, SMTP) and host on Cloudflare Pages.
+- [Architecture & Background](file:///Ubuntu/home/sebas/coding/ratemylandlord/docs/architecture.md) — Explains the folder structure, Row Level Security (RLS) model, and testing patterns.
+
+The SQL schema and policies are defined in [init.sql](file:///Ubuntu/home/sebas/coding/ratemylandlord/init.sql).
 
 ## Service Layer
 

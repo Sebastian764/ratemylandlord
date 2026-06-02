@@ -10,6 +10,12 @@ import {
   TEST_LANDLORD,
   TEST_USER,
 } from '../utils/createMockServices';
+import {
+  findAddLandlordHeading,
+  getLandlordNameField,
+  getSubmitLandlordButton,
+  findLoginHeading,
+} from '../utils/queryHelpers';
 
 vi.mock('../../components/TurnstileWidget');
 
@@ -41,16 +47,16 @@ describe('Flow 7: Add Landlord', () => {
     );
 
     // Wait for the page to render
-    await screen.findByRole('heading', { name: /add a new landlord/i });
+    await findAddLandlordHeading();
 
     // Fill in landlord name
-    await user.type(screen.getByLabelText(/landlord\/company name/i), 'New Test Landlord');
+    await user.type(getLandlordNameField(), 'New Test Landlord');
 
     // Complete captcha
     await user.click(screen.getByTestId('captcha-complete'));
 
     // Click submit
-    await user.click(screen.getByRole('button', { name: /submit landlord/i }));
+    await user.click(getSubmitLandlordButton());
 
     await waitFor(() => {
       expect(api.addLandlord).toHaveBeenCalled();
@@ -78,18 +84,18 @@ describe('Flow 7: Add Landlord', () => {
       { api, auth, initialRoute: '/add-landlord' }
     );
 
-    await screen.findByRole('heading', { name: /add a new landlord/i });
+    await findAddLandlordHeading();
 
     // Fill in landlord name
-    await user.type(screen.getByLabelText(/landlord\/company name/i), 'Some Landlord');
+    await user.type(getLandlordNameField(), 'Some Landlord');
 
     // Complete captcha to enable submit button
     await user.click(screen.getByTestId('captcha-complete'));
 
     // Click submit - user check happens first before turnstile check
-    await user.click(screen.getByRole('button', { name: /submit landlord/i }));
+    await user.click(getSubmitLandlordButton());
 
     // Should redirect to login page
-    await screen.findByRole('heading', { name: /login/i });
+    await findLoginHeading();
   });
 });

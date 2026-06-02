@@ -9,6 +9,7 @@ import {
   TEST_LANDLORD,
   TEST_REVIEW,
 } from '../utils/createMockServices';
+import { getCommentField, getSubmitReviewButton, getGuestBanner } from '../utils/queryHelpers';
 
 vi.mock('../../components/TurnstileWidget');
 
@@ -37,20 +38,20 @@ describe('Flow 5: Submit Review (Guest)', () => {
     await screen.findByText('Test Landlord');
 
     // Guest banner should be visible
-    expect(screen.getByText(/you're submitting as a guest/i)).toBeInTheDocument();
+    expect(getGuestBanner()).toBeInTheDocument();
 
-    // File upload input should NOT be in the DOM (showFileUpload={!!user})
-    expect(screen.queryByLabelText(/upload verification/i)).not.toBeInTheDocument();
+    // File upload input should NOT be in the DOM
+    expect(screen.queryByLabelText(/upload/i) || screen.queryByLabelText(/verification/i)).not.toBeInTheDocument();
 
     // Complete captcha
     await user.click(screen.getByTestId('captcha-complete'));
 
     // Type comment
-    const commentBox = screen.getByLabelText(/comment/i);
+    const commentBox = getCommentField();
     await user.type(commentBox, 'Nice place, would recommend.');
 
     // Submit
-    await user.click(screen.getByRole('button', { name: /submit review/i }));
+    await user.click(getSubmitReviewButton());
 
     await waitFor(() => {
       expect(window.confirm).toHaveBeenCalled();
@@ -89,11 +90,11 @@ describe('Flow 5: Submit Review (Guest)', () => {
     await user.click(screen.getByTestId('captcha-complete'));
 
     // Type comment
-    const commentBox = screen.getByLabelText(/comment/i);
+    const commentBox = getCommentField();
     await user.type(commentBox, 'Nice place, would recommend.');
 
     // Submit
-    await user.click(screen.getByRole('button', { name: /submit review/i }));
+    await user.click(getSubmitReviewButton());
 
     await waitFor(() => {
       expect(window.confirm).toHaveBeenCalled();
