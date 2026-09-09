@@ -1,7 +1,7 @@
 # City sites proof of concept
 
 This branch starts from `ui-changes`, the hosted Pittsburgh design. `main` keeps
-the regular UI. `/` is now the city selector, and `/pittsburgh` reuses the hosted
+the regular UI. `/` is now a searchable landlord directory grouped by city, and `/pittsburgh` reuses the hosted
 homepage and shared review pages with fictional data. Ann Arbor, College Park,
 Madison, and Austin demonstrate independent brands and homepages.
 
@@ -42,7 +42,7 @@ The original Supabase services and `init.sql` are untouched.
 7. Open the PR for Sebastian to review and merge.
 
 `cities/registry.ts` discovers `cities/*/city.ts` with Vite's import glob. The
-template is excluded. Your folder automatically adds the landing card, city tab,
+template is excluded. Your folder automatically adds the homepage review previews, city tab,
 and routes; no central registration edit is necessary. The registry rejects
 mismatched folder/slugs and reviews that reference the wrong city or landlord.
 The tests catch duplicate review fixture IDs across cities.
@@ -122,3 +122,14 @@ still matters because all town modules share one JavaScript application.
 
 The CI workflow runs TypeScript, the existing user-flow suite plus city-boundary
 tests, and a production build. No deployments or database operations are added.
+
+## Directory homepage design
+
+The network homepage shows landlord names, city-specific aggregate ratings,
+review counts, addresses, and the latest review excerpt before any navigation.
+It previews two approved landlords per city; searching shows all matching
+landlords by name/address or by their city/campus. City names and “View local
+site” open the local homepage. A landlord preview enters that same city's
+profile directly. City sites retain independent Home, Layout, and page overrides.
+The directory does not impose its layout on local teams or combine a landlord's
+ratings across cities. All displayed previews use fictional, city-scoped fixtures.

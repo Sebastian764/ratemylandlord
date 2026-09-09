@@ -81,16 +81,15 @@ describe("City site navigation", () => {
     const user = userEvent.setup();
     open("/");
     await user.type(screen.getByRole("searchbox"), "Michigan");
-    expect(screen.getByRole("link", { name: /Ann Arbor/ })).toHaveAttribute(
-      "href",
-      "/ann-arbor",
-    );
     expect(
-      screen.queryByRole("link", { name: /Pittsburgh/ }),
+      screen.getByRole("region", { name: "Ann Arbor landlords" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("region", { name: "Pittsburgh landlords" }),
     ).not.toBeInTheDocument();
     await user.clear(screen.getByRole("searchbox"));
     await user.click(
-      screen.getByRole("link", { name: /original Pittsburgh experience/ }),
+      screen.getByRole("link", { name: "Browse all Pittsburgh landlords" }),
     );
     expect(
       await screen.findByRole("heading", {
@@ -101,6 +100,49 @@ describe("City site navigation", () => {
       "href",
       "/pittsburgh/login",
     );
+  });
+  it("shows review previews immediately and searches a shared landlord without merging city ratings", async () => {
+    const user = userEvent.setup();
+    open("/");
+    expect(
+      screen.getAllByText(/heating repair took several follow-ups/).length,
+    ).toBeGreaterThan(0);
+    await user.type(screen.getByRole("searchbox"), "Lantern");
+    expect(
+      screen.getByRole("link", {
+        name: "Lantern Housing Group in Pittsburgh, 3.5 out of 5, 2 reviews",
+      }),
+    ).toHaveAttribute("href", "/pittsburgh/landlord/900");
+    await user.click(
+      screen.getByRole("link", {
+        name: "Lantern Housing Group in Ann Arbor, 4.5 out of 5, 2 reviews",
+      }),
+    );
+    await screen.findByText(/FICTIONAL ANN ARBOR REVIEW.*repair request/);
+    expect(window.location.pathname).toBe("/ann-arbor/landlord/900");
+    expect(
+      screen.queryByText(/FICTIONAL PITTSBURGH REVIEW/),
+    ).not.toBeInTheDocument();
+  });
+  it("finds addresses and offers recovery from an empty search", async () => {
+    const user = userEvent.setup();
+    open("/");
+    await user.type(screen.getByRole("searchbox"), "102 Fictional Lane");
+    expect(
+      screen.getAllByRole("link", { name: /Juniper Homes in/ }),
+    ).toHaveLength(cities.length);
+    expect(
+      screen.queryByRole("link", { name: /Lantern Housing Group in/ }),
+    ).not.toBeInTheDocument();
+    await user.clear(screen.getByRole("searchbox"));
+    await user.type(screen.getByRole("searchbox"), "no-such-landlord");
+    expect(
+      screen.getByRole("heading", { name: "No landlords found" }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Clear search" }));
+    expect(
+      screen.getByRole("region", { name: "Pittsburgh landlords" }),
+    ).toBeInTheDocument();
   });
   it("keeps profile navigation scoped and clears cached reviews on city changes", async () => {
     const user = userEvent.setup();

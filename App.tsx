@@ -175,7 +175,7 @@ function CityRoute() {
 
 function Landing() {
   useEffect(() => {
-    document.title = "RateYinzLandlord — Choose your city";
+    document.title = "RateYinzLandlord — Landlord reviews";
   }, []);
   return <CitySelectionPage />;
 }
