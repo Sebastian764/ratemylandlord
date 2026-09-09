@@ -22,15 +22,12 @@ const Header: React.FC = () => {
       </a>
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <Link to="/" className="site-brand flex items-center gap-2 group">
-          <div className="site-brand-mark w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center text-white font-bold text-lg group-hover:scale-105 transition-transform">
+          <div aria-hidden="true" className="site-brand-mark w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center text-white font-bold text-lg group-hover:scale-105 transition-transform">
             {city?.name[0] ?? "P"}
           </div>
           <div className="flex flex-col">
             <span className="site-brand-name text-xl font-bold text-gray-900 leading-none tracking-tight group-hover:text-blue-600 transition-colors">
               {city?.brand ?? "RateYinzLandlord"}
-            </span>
-            <span className="text-xs font-medium text-gray-500 tracking-widest uppercase">
-              {city?.name ?? "Pittsburgh"}
             </span>
           </div>
         </Link>

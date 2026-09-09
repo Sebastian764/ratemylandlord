@@ -118,11 +118,6 @@ function DefaultCityLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 text-gray-900 font-sans">
       <Header />
-      <div className="demo-notice" role="note">
-        Concept preview · All landlords and reviews are fictional. Guest reviews
-        reset when you leave this city or refresh. Accounts and verification are
-        unavailable.
-      </div>
       <main id="main-content" className="flex-1 w-full" tabIndex={-1}>
         {children}
       </main>
