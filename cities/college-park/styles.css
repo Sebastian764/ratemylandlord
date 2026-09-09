@@ -1,0 +1,4 @@
+/* Scope every selector to your town so other sites stay independent. */
+.city-site[data-city="college-park"] .city-hero {
+  background: #451a1a;
+}

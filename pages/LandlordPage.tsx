@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link } from '../cities/routing';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import type { Landlord, Review } from '../types';

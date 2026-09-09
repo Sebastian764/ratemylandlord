@@ -1,0 +1,8 @@
+/* Scope every selector to your town so other sites stay independent. */
+.city-site[data-city="madison"] .city-hero {
+  background: #123b32;
+}
+
+.city-site[data-city="madison"] .city-hero {
+  border-radius: 0 0 70px 0;
+}

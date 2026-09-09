@@ -1,3 +1,17 @@
+# Multi-city proof of concept
+
+This branch is based on the hosted `ui-changes` design. Start with `npm ci` and
+`npm run dev`, then open `http://localhost:3000` to choose Pittsburgh, Ann Arbor,
+College Park, Madison, or Austin. All review data is fictional, regardless of
+Supabase environment settings. No database setup is needed for this branch.
+
+**[City template and contribution guide](docs/city-sites.md)** explains copying
+`cities/_template`, customizing any page, and submitting a PR for approval.
+The original project documentation follows; its backend setup applies to the
+production app, not this forced-demo branch.
+
+---
+
 # [Rate Yinz Landlord — Pittsburgh](https://rateyinzlandlord.com/)
 
 A community platform for Pittsburgh renters to search, review, and rate landlords. Users can submit reviews with optional student verification, and admins can moderate landlords and reviews.

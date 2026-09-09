@@ -1,0 +1,4 @@
+/* Scope every selector to your town so other sites stay independent. */
+.city-site[data-city="your-town"] .city-hero {
+  background: #1e293b;
+}

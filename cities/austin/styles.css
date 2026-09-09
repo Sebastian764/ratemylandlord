@@ -1,0 +1,9 @@
+/* Scope every selector to your town so other sites stay independent. */
+.city-site[data-city="austin"] .city-hero {
+  background: #432818;
+}
+
+.city-site[data-city="austin"] .city-hero h1 {
+  font-family: Georgia, serif;
+  font-style: italic;
+}

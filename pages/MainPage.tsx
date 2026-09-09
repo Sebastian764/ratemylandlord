@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link } from '../cities/routing';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import LandlordCard from '../components/LandlordCard';
@@ -19,7 +19,7 @@ const MainPage: React.FC = () => {
     }
     return landlords.filter(landlord =>
       landlord.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      landlord.address?.toLowerCase().includes(searchTerm.toLowerCase())
+      landlord.addresses?.some(address => address.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   }, [searchTerm, landlords]);
 
@@ -42,7 +42,6 @@ const MainPage: React.FC = () => {
       {/* Hero Section */}
       <div className="bg-slate-900 text-white py-14 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a,#1e293b)] opacity-100"></div>
-        <div className="absolute inset-0 bg-[url('/assets/carbon-fibre.png')] opacity-10"></div>
 
         <div className="container mx-auto text-center relative z-10">
 
@@ -61,6 +60,7 @@ const MainPage: React.FC = () => {
                 </svg>
               </div>
               <input
+                aria-label="Search landlords or addresses"
                 type="text"
                 placeholder="Search by landlord, address, or neighborhood..."
                 value={searchTerm}

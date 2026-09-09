@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link } from '../cities/routing';
 import { useAuth } from '../context/AuthContext';
 import TurnstileWidget from '../components/TurnstileWidget';
 import { TurnstileInstance } from '@marsidev/react-turnstile';
@@ -37,31 +37,7 @@ const LoginPage: React.FC = () => {
   };
 
   const handleResendVerification = async () => {
-    if (!email) {
-      setResendMessage('Please enter your email address.');
-      return;
-    }
-
-    try {
-      // Import supabase to resend verification
-      const { supabase } = await import('../services/supabase');
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: email,
-        // TODO: Remove emailRedirectTo — no longer used since custom Supabase email templates now build token_hash links directly to our domain.
-        options: {
-          emailRedirectTo: `${globalThis.location.origin}/verify-email`,
-        },
-      });
-
-      if (error) {
-        console.error('Error resending verification email:', error);
-      }
-      setResendMessage('If this account exists and is unverified, a new verification email has been sent. Please check your inbox and spam folder.');
-    } catch (err) {
-      console.error('Error resending verification email:', err);
-      setResendMessage('If this account exists and is unverified, a new verification email has been sent. Please check your inbox and spam folder.');
-    }
+    setResendMessage('Email verification is unavailable in this demo.');
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {

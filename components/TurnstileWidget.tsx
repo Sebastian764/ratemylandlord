@@ -1,3 +1,4 @@
+import { useCity } from '../cities/context';
 import React from 'react';
 import { Turnstile, TurnstileInstance } from '@marsidev/react-turnstile';
 
@@ -14,6 +15,10 @@ const TurnstileWidget: React.FC<TurnstileWidgetProps> = ({
   onExpire,
   turnstileRef 
 }) => {
+  const city = useCity();
+  React.useEffect(() => { if (city) onSuccess('city-demo-only'); }, [city, onSuccess]);
+  if (city) return <p className="text-sm text-gray-500">Demo review — saved only until you leave this city or refresh. No verification or upload is performed.</p>;
+
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
 
   if (!siteKey) {

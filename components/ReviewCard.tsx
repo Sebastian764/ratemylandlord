@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '../cities/routing';
 import type { Review } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';

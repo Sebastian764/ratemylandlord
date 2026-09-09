@@ -1,9 +1,11 @@
+import { useCity } from '../cities/context';
 
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from '../cities/routing';
 import { useAuth } from '../context/AuthContext';
 
 const Header: React.FC = () => {
+  const city = useCity();
   const { user, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -17,13 +19,13 @@ const Header: React.FC = () => {
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         <Link to="/" className="flex items-center gap-2 group">
           <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center text-white font-bold text-lg group-hover:scale-105 transition-transform">
-            P
+            {city?.name[0] ?? 'P'}
           </div>
           <div className="flex flex-col">
             <span className="text-xl font-bold text-gray-900 leading-none tracking-tight group-hover:text-blue-600 transition-colors">
-              RateYinzLandlord
+              {city?.brand ?? 'RateYinzLandlord'}
             </span>
-            <span className="text-xs font-medium text-gray-500 tracking-widest uppercase">Pittsburgh</span>
+            <span className="text-xs font-medium text-gray-500 tracking-widest uppercase">{city?.name ?? 'Pittsburgh'}</span>
           </div>
         </Link>
 

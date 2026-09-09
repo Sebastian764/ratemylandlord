@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from '../cities/routing';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import type { Landlord } from '../types';
@@ -79,7 +79,7 @@ const AddReviewPage: React.FC = () => {
         would_rent_again: wouldRentAgain,
         rent_amount: rentAmount ? parseFloat(rentAmount) : undefined,
         property_address: propertyAddress || undefined,
-        verification_status: verificationFile ? 'pending' : 'unverified' as const,
+        verification_status: verificationFile ? 'pending' as const : 'unverified' as const,
         verification_file_url: undefined,
         created_by_student: createdByStudent
       };
@@ -110,7 +110,8 @@ const AddReviewPage: React.FC = () => {
     }
   };
   
-  if (loading || !landlord) return <div className="text-center">Loading...</div>;
+  if (loading) return <div className="text-center">Loading...</div>;
+  if (!landlord) return <div className="text-center py-12">Landlord not found. <Link to="/" className="underline">Back to local landlords</Link></div>;
 
   return (
     <div className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-xl">
@@ -120,7 +121,7 @@ const AddReviewPage: React.FC = () => {
         <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
           <p className="text-sm text-yellow-800">
             📝 You're submitting as a guest. 
-            <a href="/login" className="underline ml-1 font-semibold">Log in</a> to edit your review later and get it verified.
+            <Link to="/login" className="underline ml-1 font-semibold">Log in</Link> to edit your review later and get it verified.
           </p>
         </div>
       )}
@@ -158,9 +159,9 @@ const AddReviewPage: React.FC = () => {
         />
         <p className="text-sm text-gray-700 text-center">
           By submitting your review, you agree to our
-          <a href="/terms-and-conditions" className="underline ml-1 font-semibold text-primary-600 hover:text-primary-800">
+          <Link to="/terms-and-conditions" className="underline ml-1 font-semibold text-primary-600 hover:text-primary-800">
             Terms and Conditions.
-          </a>
+          </Link>
         </p>
         <button 
           type="submit" 

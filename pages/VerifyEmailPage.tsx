@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '../cities/routing';
 import { useAuth } from '../context/AuthContext';
 
 const VerifyEmailPage: React.FC = () => {

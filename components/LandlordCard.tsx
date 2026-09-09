@@ -1,7 +1,7 @@
 
 import React from 'react';
 import type { Landlord } from '../types';
-import { Link } from 'react-router-dom';
+import { Link } from '../cities/routing';
 
 interface LandlordCardProps {
   landlord: Landlord;

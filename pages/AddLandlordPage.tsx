@@ -1,5 +1,6 @@
+import { useCity } from '../cities/context';
 import React, { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from '../cities/routing';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
 import ReviewForm from '../components/ReviewForm';
@@ -8,6 +9,7 @@ import { useApiService } from '../context/ServicesContext';
 import { TurnstileInstance } from '@marsidev/react-turnstile';
 
 const AddLandlordPage: React.FC = () => {
+  const city = useCity();
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
   const [addReview, setAddReview] = useState(false);
@@ -52,7 +54,7 @@ const AddLandlordPage: React.FC = () => {
     const landlordData = {
       name,
       addresses: address ? [address] : undefined,
-      city: 'Pittsburgh'
+      city: city?.name ?? 'Pittsburgh'
     };
 
     let reviewData;
@@ -111,7 +113,7 @@ const AddLandlordPage: React.FC = () => {
       {!user && (
         <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
           <p className="text-sm text-yellow-800">
-            Please <a href="/login" className="underline ml-1 font-semibold">Log in</a> to add a landlord.
+            Please <Link to="/login" className="underline ml-1 font-semibold">Log in</Link> to add a landlord.
           </p>
         </div>
       )}
@@ -167,13 +169,13 @@ const AddLandlordPage: React.FC = () => {
         />
         <p className="text-sm text-gray-700 text-center">
           By submitting a landlord and/or a review, you agree to our{' '}
-          <a
-            href="/terms-and-conditions"
+          <Link
+            to="/terms-and-conditions"
             rel="noopener noreferrer"
             className="underline ml-1 font-semibold text-primary-600 hover:text-primary-800"
           >
             Terms and Conditions
-          </a>.
+          </Link>.
         </p>
 
         <button

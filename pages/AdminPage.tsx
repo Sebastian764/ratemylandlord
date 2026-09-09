@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '../cities/routing';
 import type { Landlord, Review } from '../types';
 import { useApiService } from '../context/ServicesContext';
 
