@@ -1,7 +1,7 @@
 # City sites proof of concept
 
 This branch starts from `ui-changes`, the hosted Pittsburgh design. `main` keeps
-the regular UI. `/` is now a searchable landlord directory grouped by city, and `/pittsburgh` reuses the hosted
+the regular UI. `/` opens Pittsburgh directly, and `/pittsburgh` reuses the hosted
 homepage and shared review pages with fictional data. Ann Arbor, College Park,
 Madison, and Austin demonstrate independent brands and homepages.
 
@@ -42,7 +42,7 @@ The original Supabase services and `init.sql` are untouched.
 7. Open the PR for Sebastian to review and merge.
 
 `cities/registry.ts` discovers `cities/*/city.ts` with Vite's import glob. The
-template is excluded. Your folder automatically adds the homepage review previews, city tab,
+template is excluded. Your folder automatically adds the header city link, city tab,
 and routes; no central registration edit is necessary. The registry rejects
 mismatched folder/slugs and reviews that reference the wrong city or landlord.
 The tests catch duplicate review fixture IDs across cities.
@@ -74,7 +74,7 @@ pages: { landlord: LocalLandlordPage, resources: Resources },
 ```
 
 `Layout` replaces the entire shared shell and receives routed pages as `children`.
-Render those children, provide a way back to the city selector, and keep an
+Render those children, include the shared `CityNavigation` in your header, and keep an
 obvious fictional-data notice in this prototype. `pages` can override landlord,
 addReview, editReview, addLandlord, login, register, contact, terms, admin,
 resources, resetPassword, verifyEmail, and notFound independently. Unspecified
@@ -97,7 +97,7 @@ Housing Group has the same landlord ID, **900**, in every town. Its name/identit
 is shared; its displayed addresses and reviews are local.
 
 Compare `/pittsburgh/landlord/900` (3.5) with `/ann-arbor/landlord/900` (4.5).
-The top city tabs preserve landlord 900 when it exists in the destination city.
+The header city links always open each city’s homepage.
 `CityDemoApiService` receives all review fixtures, then filters by both landlord
 ID and review city. Review detail lookups and mutations check city too. All
 rating breakdowns, counts, rent averages, and would-rent-again percentages use
@@ -123,13 +123,20 @@ still matters because all town modules share one JavaScript application.
 The CI workflow runs TypeScript, the existing user-flow suite plus city-boundary
 tests, and a production build. No deployments or database operations are added.
 
-## Directory homepage design
+## Homepage and city navigation
 
-The network homepage shows landlord names, city-specific aggregate ratings,
-review counts, addresses, and the latest review excerpt before any navigation.
-It previews two approved landlords per city; searching shows all matching
-landlords by name/address or by their city/campus. City names and “View local
-site” open the local homepage. A landlord preview enters that same city's
-profile directly. City sites retain independent Home, Layout, and page overrides.
-The directory does not impose its layout on local teams or combine a landlord's
-ratings across cities. All displayed previews use fictional, city-scoped fixtures.
+The network root `/` redirects to `/pittsburgh`, so visitors immediately see the
+original Pittsburgh search and landlord-card experience. Its dark hero and amber
+accents are retained with tighter spacing. Landlord cards load local rating
+averages, review counts, and a recent review excerpt through the active city API.
+
+The shared sticky header includes a clearly labeled “City sites” row. All city
+names are visible, the current site is highlighted, and links wrap on mobile
+instead of hiding destinations in a scrolling strip or menu. Each link opens
+that city's homepage; search, profiles, and review forms stay within that city.
+There is no geographic auto-detection, remembered redirect, or mandatory city
+selection step. The former network directory has been removed.
+
+City teams retain independent Home, Layout, and page overrides. Custom layouts
+can import `CityNavigation` from `../CityNavigation` to retain network discovery.
+The shared navigation does not impose a page design on their local site.

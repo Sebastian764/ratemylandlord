@@ -1,8 +1,8 @@
 # Multi-city proof of concept
 
 This branch is based on the hosted `ui-changes` design. Start with `npm ci` and
-`npm run dev`, then open `http://localhost:3000` to choose Pittsburgh, Ann Arbor,
-College Park, Madison, or Austin. All review data is fictional, regardless of
+`npm run dev`, then open `http://localhost:3000` for Pittsburgh. The header links to Ann Arbor,
+College Park, Madison, and Austin. All review data is fictional, regardless of
 Supabase environment settings. No database setup is needed for this branch.
 
 **[City template and contribution guide](docs/city-sites.md)** explains copying

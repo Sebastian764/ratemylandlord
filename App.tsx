@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from "react";
 import {
   BrowserRouter,
+  Navigate,
   Routes,
   Route,
   useParams,
@@ -29,8 +30,6 @@ import { CityDemoApiService } from "./services/CityDemoApiService";
 import { cities, findCity } from "./cities/registry";
 import { CityContext, useCity } from "./cities/context";
 import { cityStyle, type CityPage } from "./cities/types";
-import CitySelectionPage from "./pages/CitySelectionPage";
-import CityNavigation from "./cities/CityNavigation";
 import LocalInfo from "./cities/LocalInfo";
 import "./cities/styles.css";
 
@@ -118,14 +117,15 @@ function AppContent() {
 function DefaultCityLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 text-gray-900 font-sans">
-      <CityNavigation />
       <Header />
       <div className="demo-notice" role="note">
         Concept preview · All landlords and reviews are fictional. Guest reviews
         reset when you leave this city or refresh. Accounts and verification are
         unavailable.
       </div>
-      <main className="flex-1 w-full">{children}</main>
+      <main id="main-content" className="flex-1 w-full" tabIndex={-1}>
+        {children}
+      </main>
       <Footer />
     </div>
   );
@@ -173,18 +173,11 @@ function CityRoute() {
   return <CitySite key={citySlug} slug={citySlug!} />;
 }
 
-function Landing() {
-  useEffect(() => {
-    document.title = "RateYinzLandlord — Landlord reviews";
-  }, []);
-  return <CitySelectionPage />;
-}
-
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Landing />} />
+        <Route path="/" element={<Navigate to="/pittsburgh" replace />} />
         <Route path="/:citySlug/*" element={<CityRoute />} />
       </Routes>
     </BrowserRouter>

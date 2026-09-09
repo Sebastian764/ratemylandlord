@@ -1,8 +1,9 @@
-import { useCity } from '../cities/context';
+import CityNavigation from "../cities/CityNavigation";
+import { useCity } from "../cities/context";
 
-import React from 'react';
-import { Link, useNavigate } from '../cities/routing';
-import { useAuth } from '../context/AuthContext';
+import React from "react";
+import { Link, useNavigate } from "../cities/routing";
+import { useAuth } from "../context/AuthContext";
 
 const Header: React.FC = () => {
   const city = useCity();
@@ -11,25 +12,30 @@ const Header: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate("/");
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm transition-all duration-300">
+    <header className="site-header sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
+      <a href="#main-content" className="skip-link">
+        Skip to landlord content
+      </a>
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <Link to="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center text-white font-bold text-lg group-hover:scale-105 transition-transform">
-            {city?.name[0] ?? 'P'}
+        <Link to="/" className="site-brand flex items-center gap-2 group">
+          <div className="site-brand-mark w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center text-white font-bold text-lg group-hover:scale-105 transition-transform">
+            {city?.name[0] ?? "P"}
           </div>
           <div className="flex flex-col">
-            <span className="text-xl font-bold text-gray-900 leading-none tracking-tight group-hover:text-blue-600 transition-colors">
-              {city?.brand ?? 'RateYinzLandlord'}
+            <span className="site-brand-name text-xl font-bold text-gray-900 leading-none tracking-tight group-hover:text-blue-600 transition-colors">
+              {city?.brand ?? "RateYinzLandlord"}
             </span>
-            <span className="text-xs font-medium text-gray-500 tracking-widest uppercase">{city?.name ?? 'Pittsburgh'}</span>
+            <span className="text-xs font-medium text-gray-500 tracking-widest uppercase">
+              {city?.name ?? "Pittsburgh"}
+            </span>
           </div>
         </Link>
 
-        <nav className="flex items-center gap-3 md:gap-6">
+        <nav aria-label="Account" className="site-account flex items-center gap-3 md:gap-6">
           {user ? (
             <>
               {isAdmin && (
@@ -43,8 +49,12 @@ const Header: React.FC = () => {
               )}
               <div className="flex items-center gap-3">
                 <div className="hidden md:flex flex-col items-end">
-                  <span className="text-sm font-medium text-gray-900">{user.email}</span>
-                  <span className="text-xs text-gray-500">{isAdmin ? 'Administrator' : 'Member'}</span>
+                  <span className="text-sm font-medium text-gray-900">
+                    {user.email}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {isAdmin ? "Administrator" : "Member"}
+                  </span>
                 </div>
                 <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-medium shadow-sm">
                   {user.email?.[0].toUpperCase()}
@@ -59,7 +69,10 @@ const Header: React.FC = () => {
             </>
           ) : (
             <>
-              <Link to="/login" className="text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors">
+              <Link
+                to="/login"
+                className="text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors"
+              >
                 Log in
               </Link>
               <Link
@@ -72,6 +85,7 @@ const Header: React.FC = () => {
           )}
         </nav>
       </div>
+      {city && <CityNavigation />}
     </header>
   );
 };
