@@ -14,23 +14,14 @@ export default function CitySelectionPage() {
     <div className="city-selection">
       <header className="network-header">
         <Link to="/" className="network-brand">
-          <span className="network-mark">r.</span>Rate My Landlord
+          <span className="network-mark">r.</span>RateYinzLandlord
         </Link>
         <span className="network-label">Local knowledge. Better renting.</span>
       </header>
       <main className="network-main">
         <div className="network-intro">
-          <p className="city-eyebrow">A community for every city</p>
-          <h1>
-            Your next place.
-            <br />
-            <span>Your city’s perspective.</span>
-          </h1>
-          <p>
-            Get to know your landlord before you get the keys.
-            <br className="desktop-break" /> Choose your city to hear from the
-            renters who came before you.
-          </p>
+          <h1>Choose your city.</h1>
+          <p>Get to know your landlord before you get the keys.</p>
         </div>
         <div className="network-search-row">
           <h2>
@@ -105,7 +96,7 @@ export default function CitySelectionPage() {
         </aside>
       </main>
       <footer className="network-footer">
-        <span>Rate My Landlord</span>
+        <span>RateYinzLandlord</span>
         <p>
           Concept preview · All landlords, addresses, and reviews are fictional.
         </p>
